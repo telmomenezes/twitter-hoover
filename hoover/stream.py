@@ -13,8 +13,9 @@ class HooverStreamer(TwythonStreamer):
         self.errfile = errfile
 
     def on_success(self, data):
-        with open(self.outfile, 'a') as file:
-            file.write('{}\n'.format(json.dumps(data)))
+        if data['lang'] == 'fr':
+            with open(self.outfile, 'a') as file:
+                file.write('{}\n'.format(json.dumps(data)))
 
     def on_error(self, status_code, data):
         print('ERROR {}: {}'.format(status_code, data))
