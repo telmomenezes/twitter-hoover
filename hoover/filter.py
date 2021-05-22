@@ -1,8 +1,8 @@
 def clean_keyword(keyword):
-    if len(keyword) > 0 and keyword[0] == '#':
-        return keyword[1:]
-    else:
-        return keyword
+    # if len(keyword) > 0 and keyword[0] == '#':
+    #     return keyword[1:]
+    # else:
+    return keyword
 
 
 def read_keywords(file_path):
