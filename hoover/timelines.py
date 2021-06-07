@@ -117,6 +117,8 @@ class Timelines(RateControl):
                 month_year = datetime.utcfromtimestamp(ts).strftime('%Y-%m')
                 tweets_months[month_year].append(json.dumps(tweet))
             for month_year in tweets_months:
+                if not os.path.exists(self._user_path(user_id)):
+                    os.makedirs(self._user_path(user_id))
                 outfile = '{}/{}.json.gz'.format(
                     self._user_path(user_id), month_year)
                 with gzip.open(outfile, 'at') as of:
