@@ -41,7 +41,9 @@ def cli():
     parser.add_argument('--user', type=str, help='user screen name or id',
                         default=None)
     parser.add_argument('--type', type=str, help='type', default=None)
-
+    
+    parser.add_argument('--lang', type=str, help='language', default=None)
+    
     args = parser.parse_args()
 
     if args.infile:
@@ -65,7 +67,7 @@ def cli():
         auth_app(args.key, args.auth)
     elif args.command == 'stream':
         read_stream(args.key, args.auth, args.infile,
-                    args.outfile, args.errfile)
+                    args.outfile, args.errfile, args.lang)
     elif args.command == 'timelines':
         retrieve_timelines(args.key, args.auth, args.infile, args.user,
                            args.outdir, args.errfile, min_utc,
