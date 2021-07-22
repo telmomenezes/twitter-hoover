@@ -132,10 +132,11 @@ def retrieve(entity_type, key_file, auth_file,
             print('Retrieving {} for user {}.'.format(entity_type, user_id))
             outfile = '{}-{}.csv'.format(user_id, entity_type)
             outfile = os.path.join(outdir, outfile)
-            if 'ids' in entity_type:
-                users.retrieve_ids(user_id, entity_type, outfile)
-            else:
-                users.retrieve(user_id, entity_type, outfile)
+            if not os.path.exists(outfile):
+                if 'ids' in entity_type:
+                    users.retrieve_ids(user_id, entity_type, outfile)
+                else:
+                    users.retrieve(user_id, entity_type, outfile)
     else:
         raise RuntimeError(
             'Either --user or --infile must be provided.')
