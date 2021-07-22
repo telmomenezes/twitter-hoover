@@ -137,6 +137,8 @@ def retrieve(entity_type, key_file, auth_file,
                     users.retrieve_ids(user_id, entity_type, outfile)
                 else:
                     users.retrieve(user_id, entity_type, outfile)
+            else:
+                print(f'Data already collected for user {user_id}')
     else:
         raise RuntimeError(
             'Either --user or --infile must be provided.')
