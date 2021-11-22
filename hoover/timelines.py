@@ -152,7 +152,7 @@ class Timelines(RateControl):
 
 def retrieve_timelines(key_file, auth_file,
                        infile, user, outdir, errfile,
-                       min_utc, retweets):
+                       min_utc, retweets, anon, anon_db_folder_path):
     timelines = Timelines(infile, user, outdir, errfile, min_utc,
-                          retweets, key_file, auth_file)
+                          retweets, anon, anon_db_folder_path, key_file, auth_file)
     timelines.retrieve()
