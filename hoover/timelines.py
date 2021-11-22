@@ -75,7 +75,7 @@ class Timelines(RateControl):
         print('latest_file: {}'.format(latest_file))
         return latest_file
 
-    def _user_last_tweet_id(self, user_id):
+    def _user_last_tweet_date(self, user_id):
         cur_file = self._cur_file(user_id)
         if cur_file is None:
             return None
@@ -85,16 +85,16 @@ class Timelines(RateControl):
         else:
             tweet = json.loads(ll)
             print('latest_time: {}'.format(tweet['created_at']))
-            return tweet['id']
+            return tweet['created_at']
 
     def _retrieve(self):
         for i, user_id in enumerate(self.user_ids):
             print('[iter: {}] processing user {} #{}/{}...'.format(
                 self.iter, user_id, i, len(self.user_ids)))
             tweets = []
-            min_id = self._user_last_tweet_id(user_id)
-            if min_id is None:
-                min_id = self.min_id
+            min_date = self._user_last_tweet_date(user_id)
+            if min_date is None:
+                min_date = "Jan 01 09:19:40 +0000 2006"
             max_id = self.max_id
             finished = False
             while not finished:
@@ -104,7 +104,7 @@ class Timelines(RateControl):
                     print('{} tweets received'.format(str(len(timeline))))
                     for tweet in timeline:
                         max_id = tweet['id']
-                        if tweet['id'] > min_id:
+                        if tweet['created_at'] > min_date:
                             tweets.append(tweet)
                         else:
                             finished = True
