@@ -9,7 +9,7 @@ from hoover.snowflake import utc2snowflake, str2utc, utcnow
 from hoover.rate_control import RateControl
 from hoover.users import Users, get_user_ids
 from datetime import datetime
-from anon.anonymize_v1 import clean_anonymize_line_dict, anonymize
+from hoover.anon.anonymize_v1 import clean_anonymize_line_dict, anonymize
 
 
 def last_line(file):
