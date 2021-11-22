@@ -11,7 +11,7 @@ Clone this repository into your local machine:
 
 You can then `cd` into the created directory and use `pip` to install locally:
 
-`pip install .`
+`pip install -e .`
 
 ## How to use
 
