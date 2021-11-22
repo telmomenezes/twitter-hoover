@@ -79,11 +79,14 @@ def anonymize(data_dict, dict_key, object_type, anon_db_folder_path, social_netw
     else:
         id = data_dict[dict_key]
     hashed_id = hash_encode(id=id)
-    hash_range_str = hashed_id[:3].decode()
-    key = retrieve_key_from_anon(hash_range_str=hash_range_str, anon_db_folder_path=anon_db_folder_path)
-    ciphertext, tag = aes_siv_encrypt(key=key, data=id.encode("utf-8"))
-    anonymized_id = f'{id_type}.{social_network}.{hash_range_str}.{ciphertext}.{tag}'
-    return anonymized_id.replace('/', '*')
+    if hashed_id:
+        hash_range_str = hashed_id[:3].decode()
+        key = retrieve_key_from_anon(hash_range_str=hash_range_str, anon_db_folder_path=anon_db_folder_path)
+        ciphertext, tag = aes_siv_encrypt(key=key, data=id.encode("utf-8"))
+        anonymized_id = f'{id_type}.{social_network}.{hash_range_str}.{ciphertext}.{tag}'
+        return anonymized_id.replace('/', '*')
+    else:
+        logger.info(f'ID {id} cannot be encoded')
 
 
 def clean_anonymize_user(line_dict, output_dict, anon_db_folder_path):
