@@ -93,7 +93,7 @@ class Timelines(RateControl):
     def _retrieve(self):
         for i, user_id in enumerate(self.user_ids):
             if self.anon == 1:
-                anon_user_id = anonymize(data_dict={'id_str': user_id}, dict_key='id_str', object_type='user',
+                anon_user_id = anonymize(data_dict={'id_str': str(user_id)}, dict_key='id_str', object_type='user',
                                          anon_db_folder_path=self.anon_db_folder_path)
                 user_id = anon_user_id
             print('[iter: {}] processing user {} #{}/{}...'.format(
