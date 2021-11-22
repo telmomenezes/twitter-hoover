@@ -38,7 +38,7 @@ class Timelines(RateControl):
         self.errfile = errfile
         self.retweets = retweets
         self.twitter = twython_from_key_and_auth(key_file, auth_file)
-        self.min_id = utc2snowflake(min_utc)
+        # self.min_id = utc2snowflake(min_utc)
         self.max_id = None
         self.iter = 0
         self.anon = anon
