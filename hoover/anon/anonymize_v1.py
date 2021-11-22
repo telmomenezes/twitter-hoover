@@ -6,7 +6,7 @@ from cryptography.fernet import Fernet
 import pandas as pd
 import os
 import logging
-from utils import load_key_to_decrypt_anon, decrypt_anon, kept_anonymized_tweet_objects_list, \
+from hoover.anon.utils import load_key_to_decrypt_anon, decrypt_anon, kept_anonymized_tweet_objects_list, \
     kept_tweet_objects_list, removed_tweet_objects_list, kept_anonymized_user_objects_list, kept_user_objects_list, \
     removed_user_objects_list, kept_anonymized_entities_dict, kept_entities_list, removed_entities_list, determine_id_type
 import base64
