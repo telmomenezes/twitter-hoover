@@ -9,6 +9,7 @@ from hoover.snowflake import utc2snowflake, str2utc, utcnow
 from hoover.rate_control import RateControl
 from hoover.users import Users, get_user_ids
 from datetime import datetime
+from anon.anonymize_v1 import clean_anonymize_line_dict, anonymize
 
 
 def last_line(file):
@@ -23,7 +24,7 @@ def last_line(file):
 
 
 class Timelines(RateControl):
-    def __init__(self, infile, user, outdir, errfile, min_utc, retweets,
+    def __init__(self, infile, user, outdir, errfile, min_utc, retweets, anon, anon_db_folder_path,
                  key_file, auth_file):
         super().__init__(rate_limit=900)
         if infile is not None:
@@ -40,6 +41,8 @@ class Timelines(RateControl):
         self.min_id = utc2snowflake(min_utc)
         self.max_id = None
         self.iter = 0
+        self.anon = anon
+        self.anon_db_folder_path = anon_db_folder_path
 
     def get_timeline(self, user_id, max_id):
         try:
@@ -89,6 +92,10 @@ class Timelines(RateControl):
 
     def _retrieve(self):
         for i, user_id in enumerate(self.user_ids):
+            if self.anon == 1:
+                anon_user_id = anonymize(data_dict={'id_str': user_id}, dict_key='id_str', object_type='user',
+                                         anon_db_folder_path=self.anon_db_folder_path)
+                user_id = anon_user_id
             print('[iter: {}] processing user {} #{}/{}...'.format(
                 self.iter, user_id, i, len(self.user_ids)))
             tweets = []
@@ -105,6 +112,10 @@ class Timelines(RateControl):
                     for tweet in timeline:
                         max_id = tweet['id']
                         if tweet['created_at'] > min_date:
+                            if self.anon == 1:
+                                anon_tweet = clean_anonymize_line_dict(line_dict=tweet,
+                                                                       anon_db_folder_path=self.anon_db_folder_path)
+                                tweet = anon_tweet
                             tweets.append(tweet)
                         else:
                             finished = True

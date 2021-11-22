@@ -71,7 +71,7 @@ def cli():
     elif args.command == 'timelines':
         retrieve_timelines(args.key, args.auth, args.infile, args.user,
                            args.outdir, args.errfile, min_utc,
-                           not args.noretweets)
+                           not args.noretweets, )
     elif args.command == 'friends':
         retrieve_friends(args.key, args.auth, args.user, args.outfile,
                          args.infile, args.outdir)
