@@ -43,6 +43,8 @@ def cli():
     parser.add_argument('--type', type=str, help='type', default=None)
     
     parser.add_argument('--lang', type=str, help='language', default=None)
+    parser.add_argument('--anon', type=int, help='whether to anonymize', default=0)
+    parser.add_argument('--anon_db_folder_path', type=str, help='path to anon DB', default='/home/socsemics/anon')
     
     args = parser.parse_args()
 
@@ -71,7 +73,7 @@ def cli():
     elif args.command == 'timelines':
         retrieve_timelines(args.key, args.auth, args.infile, args.user,
                            args.outdir, args.errfile, min_utc,
-                           not args.noretweets, )
+                           not args.noretweets, args.anon, args.anon_db_folder_path )
     elif args.command == 'friends':
         retrieve_friends(args.key, args.auth, args.user, args.outfile,
                          args.infile, args.outdir)
