@@ -118,10 +118,12 @@ class Timelines(RateControl):
                             if self.anon == 1:
                                 anon_tweet = clean_anonymize_line_dict(line_dict=tweet,
                                                                        anon_db_folder_path=self.anon_db_folder_path)
+                                print(count)
                                 tweet = anon_tweet
                             tweets.append(tweet)
                         else:
                             finished = True
+
                 else:
                     finished = True
             print('{} tweets found.'.format(len(tweets)))
