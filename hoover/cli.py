@@ -1,6 +1,7 @@
 import argparse
 import time
 import calendar
+from dateutil import parser
 from hoover.auth import auth_app
 from hoover.stream import read_stream
 from hoover.timelines import retrieve_timelines
@@ -35,13 +36,12 @@ def cli():
     parser.add_argument('--auth', type=str, help='auth file',
                         default='auth.txt')
     parser.add_argument('--mindate', type=str, help='earliest date for tweets',
-                        default=None)
+                        default='20.03.2006')
     parser.add_argument('--noretweets', help='do not retrieve retweets',
                         action='store_true')
     parser.add_argument('--user', type=str, help='user screen name or id',
                         default=None)
     parser.add_argument('--type', type=str, help='type', default=None)
-    
     parser.add_argument('--lang', type=str, help='language', default=None)
     parser.add_argument('--anon', type=int, help='whether to anonymize', default=0)
     parser.add_argument('--anon_db_folder_path', type=str, help='path to anon DB', default='/home/socsemics/anon')
@@ -59,7 +59,7 @@ def cli():
 
     min_utc = None
     if args.mindate:
-        min_utc = ddmmyy2utc(args.mindate)
+        min_utc = parser.parse(args.mindate)
         print('minimum date: {}'.format(args.mindate))
 
     if args.noretweets:

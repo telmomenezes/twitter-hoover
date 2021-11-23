@@ -2,6 +2,7 @@ import os
 import glob
 import json
 import gzip
+from dateutil import parser
 from collections import defaultdict
 from twython import TwythonError
 from hoover.auth import twython_from_key_and_auth
@@ -39,6 +40,7 @@ class Timelines(RateControl):
         self.retweets = retweets
         self.twitter = twython_from_key_and_auth(key_file, auth_file)
         # self.min_id = utc2snowflake(min_utc)
+        self.min_utc = min_utc
         self.max_id = None
         self.iter = 0
         self.anon = anon
@@ -88,7 +90,7 @@ class Timelines(RateControl):
         else:
             tweet = json.loads(ll)
             print('latest_time: {}'.format(tweet['created_at']))
-            return tweet['created_at']
+            return parser.parse(tweet['created_at'])
 
     def _retrieve(self):
         for i, user_id in enumerate(self.user_ids):
@@ -102,7 +104,7 @@ class Timelines(RateControl):
             min_date = self._user_last_tweet_date(user_id)
             print(f'Min date: {min_date}')
             if min_date is None:
-                min_date = "Jan 01 09:19:40 +0000 2006"
+                min_date = self.min_utc
             max_id = self.max_id
             finished = False
             while not finished:
@@ -112,12 +114,11 @@ class Timelines(RateControl):
                     print('{} tweets received'.format(str(len(timeline))))
                     for count, tweet in enumerate(timeline):
                         max_id = tweet['id']
-                        if tweet['created_at'] > min_date:
+                        if parser.parse(tweet['created_at']) > min_date:
                             if self.anon == 1:
                                 anon_tweet = clean_anonymize_line_dict(line_dict=tweet,
                                                                        anon_db_folder_path=self.anon_db_folder_path)
                                 tweet = anon_tweet
-                            print(tweet['created_at'])
                             tweets.append(tweet)
                         else:
                             finished = True
