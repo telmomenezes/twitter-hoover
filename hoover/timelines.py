@@ -100,6 +100,7 @@ class Timelines(RateControl):
                 self.iter, user_id, i, len(self.user_ids)))
             tweets = []
             min_date = self._user_last_tweet_date(user_id)
+            print(f'Min date: {min_date}')
             if min_date is None:
                 min_date = "Jan 01 09:19:40 +0000 2006"
             max_id = self.max_id
@@ -109,7 +110,7 @@ class Timelines(RateControl):
                 timeline = self.get_timeline(user_id, max_id - 1)
                 if timeline:
                     print('{} tweets received'.format(str(len(timeline))))
-                    for tweet in timeline:
+                    for count, tweet in enumerate(timeline):
                         max_id = tweet['id']
                         if tweet['created_at'] > min_date:
                             if self.anon == 1:
@@ -119,6 +120,7 @@ class Timelines(RateControl):
                             tweets.append(tweet)
                         else:
                             finished = True
+                        print(f'{count} covered tweets')
                 else:
                     finished = True
             # write to file
