@@ -112,7 +112,8 @@ class Timelines(RateControl):
                     print('{} tweets received'.format(str(len(timeline))))
                     for count, tweet in enumerate(timeline):
                         max_id = tweet['id']
-                        if tweet['created_at'] < min_date:
+                        print(tweet['created_at'])
+                        if tweet['created_at'] > min_date:
                             if self.anon == 1:
                                 anon_tweet = clean_anonymize_line_dict(line_dict=tweet,
                                                                        anon_db_folder_path=self.anon_db_folder_path)
@@ -122,7 +123,6 @@ class Timelines(RateControl):
                             finished = True
                 else:
                     finished = True
-            print(f'{count} covered tweets')
             print('{} tweets found.'.format(len(tweets)))
             # write to file
             tweets_months = defaultdict(list)
