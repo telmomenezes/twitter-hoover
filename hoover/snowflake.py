@@ -18,6 +18,8 @@ def str2utc(s):
     # parse twitter time string into UTC seconds, unix-style
     return calendar.timegm(time.strptime(s, "%a %b %d %H:%M:%S +0000 %Y"))
 
+def str2datetime(s):
+    return datetime.datetime.strptime(s, "%a %b %d %H:%M:%S +0000 %Y")
 
 def utc2snowflake(stamp):
     return (int(round(stamp * 1000)) - 1288834974657) << 22

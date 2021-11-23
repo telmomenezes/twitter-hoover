@@ -1,7 +1,6 @@
 import argparse
 import time
 import calendar
-from dateutil import parser
 from hoover.auth import auth_app
 from hoover.stream import read_stream
 from hoover.timelines import retrieve_timelines
@@ -11,7 +10,7 @@ from hoover.simple import simplify
 from hoover.csv import to_csv
 from hoover.youtube import extract_videos
 from hoover.hydrate import hydrate_file
-
+from hoover.snowflake import str2datetime
 
 def ddmmyy2utc(s):
     return calendar.timegm(time.strptime(s, '%d.%m.%Y'))
@@ -59,7 +58,7 @@ def cli():
 
     min_utc = None
     if args.mindate:
-        min_utc = parser.parse(args.mindate)
+        min_utc = str2datetime(args.mindate)
         print('minimum date: {}'.format(args.mindate))
 
     if args.noretweets:

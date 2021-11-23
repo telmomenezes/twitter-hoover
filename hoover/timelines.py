@@ -6,7 +6,7 @@ from dateutil import parser
 from collections import defaultdict
 from twython import TwythonError
 from hoover.auth import twython_from_key_and_auth
-from hoover.snowflake import utc2snowflake, str2utc, utcnow
+from hoover.snowflake import utc2snowflake, str2utc, utcnow, str2datetime
 from hoover.rate_control import RateControl
 from hoover.users import Users, get_user_ids
 from datetime import datetime
@@ -90,7 +90,7 @@ class Timelines(RateControl):
         else:
             tweet = json.loads(ll)
             print('latest_time: {}'.format(tweet['created_at']))
-            return parser.parse(tweet['created_at'])
+            return str2datetime(tweet['created_at'])
 
     def _retrieve(self):
         for i, user_id in enumerate(self.user_ids):
@@ -114,7 +114,7 @@ class Timelines(RateControl):
                     print('{} tweets received'.format(str(len(timeline))))
                     for count, tweet in enumerate(timeline):
                         max_id = tweet['id']
-                        if parser.parse(tweet['created_at']) > min_date:
+                        if str2datetime(tweet['created_at']) > min_date:
                             if self.anon == 1:
                                 anon_tweet = clean_anonymize_line_dict(line_dict=tweet,
                                                                        anon_db_folder_path=self.anon_db_folder_path)
