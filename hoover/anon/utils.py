@@ -102,7 +102,7 @@ def retrieve_keywords(keywords_path):
     return keywords_file.read().splitlines()
 
 
-def build_search_query(keywords_path, lang):
+def build_search_query_keywords(keywords_path, lang):
     keywords_list = retrieve_keywords(keywords_path)
     query_str = '('
     for count, keyword in enumerate(keywords_list):
@@ -115,6 +115,7 @@ def build_search_query(keywords_path, lang):
     if lang:
         query_str = f'{query_str} lang:{lang}'
     return query_str
+
 
 
 def save_to_json(data_dict, outfile):

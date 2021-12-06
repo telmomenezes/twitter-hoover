@@ -91,104 +91,96 @@ def anonymize(data_dict, dict_key, object_type, anon_db_folder_path, social_netw
 
 def clean_anonymize_user(line_dict, output_dict, anon_db_folder_path):
     output_dict['user'] = dict()
-    if 'user' in line_dict.keys():
-        for user_key in line_dict['user'].keys():
-            if not user_key in removed_user_objects_list:
-                if user_key in kept_anonymized_user_objects_list:
-                    if line_dict["user"][user_key]:
-                        output_dict['user'][user_key] = anonymize(data_dict=line_dict['user'], dict_key=user_key,
-                                                                  object_type='user', anon_db_folder_path=anon_db_folder_path)
-                    else:
-                        output_dict['user'][user_key] = line_dict["user"][user_key]
-                elif user_key in kept_user_objects_list:
-                    output_dict['user'][user_key] = line_dict['user'][user_key]
-                elif user_key == 'url':
-                    if line_dict["user"][user_key]:
-                        output_dict['user'][user_key] = anonymize(data_dict=line_dict['user'], dict_key=user_key,
-                                                                  object_type='urls', anon_db_folder_path=anon_db_folder_path)
-                    else:
-                        output_dict['user'][user_key] = line_dict["user"][user_key]
-                elif user_key == 'description':
-                    if line_dict["user"][user_key]:
-                        output_dict['user'][user_key] = anonymize_text(line_dict["user"][user_key], anon_db_folder_path=anon_db_folder_path)
-                    else:
-                        output_dict['user'][user_key] = line_dict["user"][user_key]
+    for user_key in line_dict['user'].keys():
+        if user_key in kept_anonymized_user_objects_list:
+            if line_dict["user"][user_key]:
+                output_dict['user'][user_key] = anonymize(data_dict=line_dict['user'], dict_key=user_key,
+                                                          object_type='user', anon_db_folder_path=anon_db_folder_path)
+            else:
+                output_dict['user'][user_key] = ''
+        elif user_key in kept_user_objects_list:
+            output_dict['user'][user_key] = line_dict['user'][user_key]
+        elif user_key == 'url':
+            if line_dict["user"][user_key]:
+                output_dict['user'][user_key] = anonymize(data_dict=line_dict['user'], dict_key=user_key,
+                                                          object_type='urls', anon_db_folder_path=anon_db_folder_path)
+            else:
+                output_dict['user'][user_key] = ''
+        elif user_key == 'description':
+            if line_dict["user"][user_key]:
+                output_dict['user'][user_key] = anonymize_text(line_dict["user"][user_key], anon_db_folder_path=anon_db_folder_path)
+            else:
+                output_dict['user'][user_key] = ''
     return output_dict
 
 
 def clean_anonymize_retweeted_status(line_dict, output_dict, anon_db_folder_path):
     output_dict['retweeted_status'] = dict()
-    if 'retweeted_status' in line_dict.keys():
-        for key in line_dict['retweeted_status'].keys():
-            if not key in removed_tweet_objects_list:
-                if key == 'user':
-                    output_dict['retweeted_status'] = clean_anonymize_user(line_dict=line_dict['retweeted_status'],
-                                                                           output_dict=output_dict['retweeted_status'], anon_db_folder_path=anon_db_folder_path)
-                elif key == 'url':
-                    if line_dict['retweeted_status'][key]:
-                        output_dict['retweeted_status'][key] = anonymize(data_dict=line_dict['retweeted_status'],
-                                                                         dict_key=key, object_type='urls', anon_db_folder_path=anon_db_folder_path)
-                    else:
-                        output_dict['retweeted_status'][key] = line_dict['retweeted_status'][key]
-                elif key in kept_anonymized_tweet_objects_list:
-                    if line_dict['retweeted_status'][key]:
-                        output_dict['retweeted_status'][key] = anonymize(data_dict=line_dict['retweeted_status'],
-                                                                         dict_key=key, object_type='tweet', anon_db_folder_path=anon_db_folder_path)
-                    else:
-                        output_dict['retweeted_status'][key] = line_dict['retweeted_status'][key]
-                elif key in kept_tweet_objects_list:
-                    output_dict['retweeted_status'][key] = line_dict['retweeted_status'][key]
+    for key in line_dict['retweeted_status'].keys():
+        if key == 'user':
+            output_dict['retweeted_status'] = clean_anonymize_user(line_dict=line_dict['retweeted_status'],
+                                                                   output_dict=output_dict['retweeted_status'], anon_db_folder_path=anon_db_folder_path)
+        elif key == 'url':
+            if line_dict['retweeted_status'][key]:
+                output_dict['retweeted_status'][key] = anonymize(data_dict=line_dict['retweeted_status'],
+                                                                 dict_key=key, object_type='urls', anon_db_folder_path=anon_db_folder_path)
+            else:
+                output_dict['retweeted_status'][key] = ''
+        elif key in kept_anonymized_tweet_objects_list:
+            if line_dict['retweeted_status'][key]:
+                output_dict['retweeted_status'][key] = anonymize(data_dict=line_dict['retweeted_status'],
+                                                                 dict_key=key, object_type='tweet', anon_db_folder_path=anon_db_folder_path)
+            else:
+                output_dict['retweeted_status'][key] = ''
+        elif key in kept_tweet_objects_list:
+            output_dict['retweeted_status'][key] = line_dict['retweeted_status'][key]
     return output_dict
 
 def clean_anonymize_quoted_status(line_dict, output_dict, anon_db_folder_path):
     output_dict['quoted_status'] = dict()
-    if 'quoted_status' in line_dict.keys():
-        for key in line_dict['quoted_status'].keys():
-            if not key in removed_tweet_objects_list:
-                if key == 'user':
-                    output_dict['quoted_status'] = clean_anonymize_user(line_dict=line_dict['quoted_status'],
-                                                                           output_dict=output_dict['quoted_status'], anon_db_folder_path=anon_db_folder_path)
-                elif key == 'url':
-                    if line_dict['quoted_status'][key]:
-                        output_dict['quoted_status'][key] = anonymize(data_dict=line_dict['quoted_status'],
-                                                                         dict_key=key, object_type='urls', anon_db_folder_path=anon_db_folder_path)
-                    else:
-                        output_dict['quoted_status'][key] = line_dict['quoted_status'][key]
-                elif key in kept_anonymized_tweet_objects_list:
-                    if line_dict['quoted_status'][key]:
-                        output_dict['quoted_status'][key] = anonymize(data_dict=line_dict['quoted_status'],
-                                                                         dict_key=key, object_type='tweet', anon_db_folder_path=anon_db_folder_path)
-                    else:
-                        output_dict['quoted_status'][key] = line_dict['quoted_status'][key]
-                elif key in kept_tweet_objects_list:
-                    output_dict['quoted_status'][key] = line_dict['quoted_status'][key]
+    for key in line_dict['quoted_status'].keys():
+        if key == 'user':
+            output_dict['quoted_status'] = clean_anonymize_user(line_dict=line_dict['quoted_status'],
+                                                                   output_dict=output_dict['quoted_status'], anon_db_folder_path=anon_db_folder_path)
+        elif key == 'url':
+            if line_dict['quoted_status'][key]:
+                output_dict['quoted_status'][key] = anonymize(data_dict=line_dict['quoted_status'],
+                                                                 dict_key=key, object_type='urls', anon_db_folder_path=anon_db_folder_path)
+            else:
+                output_dict['quoted_status'][key] = line_dict['quoted_status'][key]
+        elif key in kept_anonymized_tweet_objects_list:
+            if line_dict['quoted_status'][key]:
+                output_dict['quoted_status'][key] = anonymize(data_dict=line_dict['quoted_status'],
+                                                                 dict_key=key, object_type='tweet', anon_db_folder_path=anon_db_folder_path)
+            else:
+                output_dict['quoted_status'][key] = line_dict['quoted_status'][key]
+        elif key in kept_tweet_objects_list:
+            output_dict['quoted_status'][key] = line_dict['quoted_status'][key]
     return output_dict
 
 def clean_anonymize_entities(line_dict, output_dict, anon_db_folder_path):
     output_dict['entities'] = dict()
-    if 'entities' in line_dict.keys():
-        for key in line_dict['entities'].keys():
-            if not key in removed_entities_list:
-                if key == 'user_mentions':
-                    user_mentions_list = list()
-                    for user_dict in line_dict['entities']['user_mentions']:
-                        anonymized_user_dict = dict()
-                        anonymized_user_dict['screen_name'] = anonymize(data_dict=user_dict, dict_key='screen_name', object_type='user', anon_db_folder_path=anon_db_folder_path)
-                        anonymized_user_dict['id_str'] = anonymize(data_dict=user_dict, dict_key='id_str',
-                                                                        object_type='user', anon_db_folder_path=anon_db_folder_path)
-                        user_mentions_list.append(anonymized_user_dict)
-                    output_dict['entities']['user_mentions'] = user_mentions_list
-                elif key == 'urls':
-                    urls_list = list()
-                    for url_dict in line_dict['entities']['urls']:
-                        anonymized_url_dict = dict()
-                        anonymized_url_dict['url'] = anonymize(data_dict=url_dict, dict_key='url', object_type='urls', anon_db_folder_path=anon_db_folder_path)
-                        anonymized_url_dict['expanded_url'] = anonymize(data_dict=url_dict, dict_key='expanded_url',
-                                                                        object_type='urls', anon_db_folder_path=anon_db_folder_path)
-                        urls_list.append(anonymized_url_dict)
-                    output_dict['entities']['urls'] = urls_list
-                elif key in kept_entities_list:
-                    output_dict['entities'][key] = line_dict['entities'][key]
+    for key in line_dict['entities'].keys():
+        if key == 'user_mentions':
+            user_mentions_list = list()
+            for user_dict in line_dict['entities']['user_mentions']:
+                anonymized_user_dict = dict()
+                anonymized_user_dict['screen_name'] = anonymize(data_dict=user_dict, dict_key='screen_name', object_type='user', anon_db_folder_path=anon_db_folder_path)
+                anonymized_user_dict['id_str'] = anonymize(data_dict=user_dict, dict_key='id_str',
+                                                                object_type='user', anon_db_folder_path=anon_db_folder_path)
+                user_mentions_list.append(anonymized_user_dict)
+            output_dict['entities']['user_mentions'] = user_mentions_list
+        elif key == 'urls':
+            urls_list = list()
+            for url_dict in line_dict['entities']['urls']:
+                anonymized_url_dict = dict()
+                anonymized_url_dict['url'] = anonymize(data_dict=url_dict, dict_key='url', object_type='urls', anon_db_folder_path=anon_db_folder_path)
+                anonymized_url_dict['expanded_url'] = anonymize(data_dict=url_dict, dict_key='expanded_url',
+                                                                object_type='urls', anon_db_folder_path=anon_db_folder_path)
+                urls_list.append(anonymized_url_dict)
+            output_dict['entities']['urls'] = urls_list
+        elif key in kept_entities_list:
+            output_dict['entities'][key] = line_dict['entities'][key]
     return output_dict
 
 def anonymize_text(text, anon_db_folder_path):
@@ -222,24 +214,23 @@ def clean_anonymize_text(line_dict, output_dict, anon_db_folder_path):
 def clean_anonymize_line_dict(line_dict, anon_db_folder_path):
     output_dict = dict()
     for key in line_dict.keys():
-        if not key in removed_tweet_objects_list:
-            if key == 'user':
-                output_dict = clean_anonymize_user(line_dict=line_dict, output_dict=output_dict, anon_db_folder_path=anon_db_folder_path)
-            elif key == 'retweeted_status':
-                output_dict = clean_anonymize_retweeted_status(line_dict=line_dict, output_dict=output_dict, anon_db_folder_path=anon_db_folder_path)
-            elif key == 'quoted_status':
-                output_dict = clean_anonymize_quoted_status(line_dict=line_dict, output_dict=output_dict, anon_db_folder_path=anon_db_folder_path)
-            elif key in ['text', 'full_text']:
-                output_dict = clean_anonymize_text(line_dict=line_dict, output_dict=output_dict, anon_db_folder_path=anon_db_folder_path)
-            elif key == 'entities':
-                output_dict = clean_anonymize_entities(line_dict=line_dict, output_dict=output_dict, anon_db_folder_path=anon_db_folder_path)
-            elif key in kept_anonymized_tweet_objects_list:
-                if line_dict[key]:
-                    output_dict[key] = anonymize(data_dict=line_dict, dict_key=key, object_type='tweet', anon_db_folder_path=anon_db_folder_path)
-                else:
-                    output_dict[key] = line_dict[key]
-            elif key in kept_tweet_objects_list:
+        if key == 'user':
+            output_dict = clean_anonymize_user(line_dict=line_dict, output_dict=output_dict, anon_db_folder_path=anon_db_folder_path)
+        elif key == 'retweeted_status':
+            output_dict = clean_anonymize_retweeted_status(line_dict=line_dict, output_dict=output_dict, anon_db_folder_path=anon_db_folder_path)
+        elif key == 'quoted_status':
+            output_dict = clean_anonymize_quoted_status(line_dict=line_dict, output_dict=output_dict, anon_db_folder_path=anon_db_folder_path)
+        elif key in ['text', 'full_text']:
+            output_dict = clean_anonymize_text(line_dict=line_dict, output_dict=output_dict, anon_db_folder_path=anon_db_folder_path)
+        elif key == 'entities':
+            output_dict = clean_anonymize_entities(line_dict=line_dict, output_dict=output_dict, anon_db_folder_path=anon_db_folder_path)
+        elif key in kept_anonymized_tweet_objects_list:
+            if line_dict[key]:
+                output_dict[key] = anonymize(data_dict=line_dict, dict_key=key, object_type='tweet', anon_db_folder_path=anon_db_folder_path)
+            else:
                 output_dict[key] = line_dict[key]
+        elif key in kept_tweet_objects_list:
+            output_dict[key] = line_dict[key]
     output_dict['anon'] = 1
     return output_dict
 
