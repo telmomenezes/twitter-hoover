@@ -78,15 +78,16 @@ def anonymize(data_dict, dict_key, object_type, anon_db_folder_path, social_netw
         id = data_dict
     else:
         id = data_dict[dict_key]
-    hashed_id = hash_encode(id=id)
-    if hashed_id:
-        hash_range_str = hashed_id[:3].decode()
-        key = retrieve_key_from_anon(hash_range_str=hash_range_str, anon_db_folder_path=anon_db_folder_path)
-        ciphertext, tag = aes_siv_encrypt(key=key, data=id.encode("utf-8"))
-        anonymized_id = f'{id_type}.{social_network}.{hash_range_str}.{ciphertext}.{tag}'
-        return anonymized_id.replace('/', '*')
-    else:
-        logger.info(f'ID {id} cannot be encoded')
+    # hashed_id = hash_encode(id=id)
+    # if hashed_id:
+    #     hash_range_str = hashed_id[:3].decode()
+    #     key = retrieve_key_from_anon(hash_range_str=hash_range_str, anon_db_folder_path=anon_db_folder_path)
+    #     ciphertext, tag = aes_siv_encrypt(key=key, data=id.encode("utf-8"))
+    #     anonymized_id = f'{id_type}.{social_network}.{hash_range_str}.{ciphertext}.{tag}'
+    #     return anonymized_id.replace('/', '*')
+    # else:
+    #     logger.info(f'ID {id} cannot be encoded')
+    return id
 
 
 def clean_anonymize_user(line_dict, output_dict, anon_db_folder_path):
@@ -184,21 +185,22 @@ def clean_anonymize_entities(line_dict, output_dict, anon_db_folder_path):
     return output_dict
 
 def anonymize_text(text, anon_db_folder_path):
-    screen_name_list = [i[1:] for i in text.split() if i.startswith('@')]
-    if text[:2] == 'RT':
-        screen_name_list[0] = screen_name_list[0].replace(':', '')
-    url_list = re.findall(r'(https?://\S+)', text)
-    # build anonymized screen names and urls
-    replace_dict = dict()
-    for screen_name in screen_name_list:
-        replace_dict[screen_name] = anonymize(data_dict=screen_name, dict_key='screen_name', object_type='text', anon_db_folder_path=anon_db_folder_path)
-    for url in url_list:
-        replace_dict[url] = anonymize(data_dict=url, dict_key='tweet_url', object_type='text', anon_db_folder_path=anon_db_folder_path)
-    # replace screen names and urls in text with anonymized versions
-    anonymized_text = text
-    for to_replace_str in replace_dict.keys():
-        anonymized_text = anonymized_text.replace(to_replace_str, replace_dict[to_replace_str])
-    return anonymized_text
+    # screen_name_list = [i[1:] for i in text.split() if i.startswith('@')]
+    # if text[:2] == 'RT':
+    #     screen_name_list[0] = screen_name_list[0].replace(':', '')
+    # url_list = re.findall(r'(https?://\S+)', text)
+    # # build anonymized screen names and urls
+    # replace_dict = dict()
+    # for screen_name in screen_name_list:
+    #     replace_dict[screen_name] = anonymize(data_dict=screen_name, dict_key='screen_name', object_type='text', anon_db_folder_path=anon_db_folder_path)
+    # for url in url_list:
+    #     replace_dict[url] = anonymize(data_dict=url, dict_key='tweet_url', object_type='text', anon_db_folder_path=anon_db_folder_path)
+    # # replace screen names and urls in text with anonymized versions
+    # anonymized_text = text
+    # for to_replace_str in replace_dict.keys():
+    #     anonymized_text = anonymized_text.replace(to_replace_str, replace_dict[to_replace_str])
+    # return anonymized_text
+    return text
 
 def clean_anonymize_text(line_dict, output_dict, anon_db_folder_path):
     if 'full_text' in line_dict.keys():
