@@ -12,7 +12,7 @@ from hoover.users import Users, get_user_ids
 from datetime import datetime
 from hoover.anon.anonymize_v1 import clean_anonymize_line_dict, anonymize
 import time
-import pandas as pd
+import pickle
 
 
 def last_line(file):
@@ -96,11 +96,12 @@ class Timelines(RateControl):
 
     def _retrieve(self):
         if self.anon == 1:
-            anon_df = pd.read_csv(os.path.join(self.anon_db_folder_path, 'anon-DB.csv'), keep_default_na=False)
+            with open(os.path.join(self.anon_db_folder_path, 'anon-DB.pickle'), 'rb') as handle:
+                anon_dict = pickle.load(handle)
         for i, user_id in enumerate(self.user_ids):
             if self.anon == 1:
                 anon_user_id = anonymize(data_dict={'id_str': str(user_id)}, dict_key='id_str', object_type='user',
-                                         anon_df=anon_df)
+                                         anon_dict=anon_dict)
                 user_id = anon_user_id
             print('[iter: {}] processing user {} #{}/{}...'.format(
                 self.iter, user_id, i, len(self.user_ids)))
@@ -123,7 +124,7 @@ class Timelines(RateControl):
                             if self.anon == 1:
                                 start = time.time()
                                 anon_tweet = clean_anonymize_line_dict(line_dict=tweet,
-                                                                       anon_df=anon_df)
+                                                                       anon_dict=anon_dict)
                                 end = time.time()
                                 print(f'Time elapsed per tweet: {end - start}')
                                 time_elapsed += end - start

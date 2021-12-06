@@ -17,6 +17,7 @@ import hashlib
 import json
 from Crypto.Cipher import AES
 from base64 import b64encode, b64decode
+import pickle
 
 logging.basicConfig(format='%(asctime)s - %(levelname)s - %(name)s -   %(message)s',
                     datefmt='%m/%d/%Y %H:%M:%S',
@@ -35,13 +36,12 @@ def get_args_from_command_line():
     return args
 
 
-def retrieve_key_from_anon(hash_range_str, anon_df):
-    # anon_path = os.path.join(anon_db_folder_path, 'anon-DB.csv')
-    # anon_df = pd.read_csv(anon_path, keep_default_na=False)
-    if hash_range_str in anon_df['hash_range'].unique():
-        assert anon_df.loc[anon_df['hash_range'] == hash_range_str, 'encryption_key'].shape[0] == 1
-        key = anon_df.loc[anon_df['hash_range'] == hash_range_str, 'encryption_key'].iloc[0]
-        return key
+def retrieve_key_from_anon(hash_range_str, anon_dict):
+    if hash_range_str in anon_dict:
+        return anon_dict[hash_range_str]
+        # assert anon_df.loc[anon_df['hash_range'] == hash_range_str, 'encryption_key'].shape[0] == 1
+        # key = anon_df.loc[anon_df['hash_range'] == hash_range_str, 'encryption_key'].iloc[0]
+        # return key
 
 
 def hash_encode(id):
@@ -59,7 +59,7 @@ def aes_siv_encrypt(key, data):
     return [ b64encode(x).decode('utf-8') for x in [ciphertext, tag] ]
 
 
-def anonymize(data_dict, dict_key, object_type, anon_df, social_network='T'):
+def anonymize(data_dict, dict_key, object_type, anon_dict, social_network='T'):
     """Anonymize the selected id based on id type.
     Parameters:
         id (str): the id to anonymize
@@ -80,7 +80,7 @@ def anonymize(data_dict, dict_key, object_type, anon_df, social_network='T'):
     hashed_id = hash_encode(id=id)
     if hashed_id:
         hash_range_str = hashed_id[:3].decode()
-        key = retrieve_key_from_anon(hash_range_str=hash_range_str, anon_df=anon_df)
+        key = retrieve_key_from_anon(hash_range_str=hash_range_str, anon_dict=anon_dict)
         ciphertext, tag = aes_siv_encrypt(key=key, data=id.encode("utf-8"))
         anonymized_id = f'{id_type}.{social_network}.{hash_range_str}.{ciphertext}.{tag}'
         return anonymized_id.replace('/', '*')
@@ -88,13 +88,13 @@ def anonymize(data_dict, dict_key, object_type, anon_df, social_network='T'):
         logger.info(f'ID {id} cannot be encoded')
 
 
-def clean_anonymize_user(line_dict, output_dict, anon_df):
+def clean_anonymize_user(line_dict, output_dict, anon_dict):
     output_dict['user'] = dict()
     for user_key in line_dict['user'].keys():
         if user_key in kept_anonymized_user_objects_list:
             if line_dict["user"][user_key]:
                 output_dict['user'][user_key] = anonymize(data_dict=line_dict['user'], dict_key=user_key,
-                                                          object_type='user', anon_df=anon_df)
+                                                          object_type='user', anon_dict=anon_dict)
             else:
                 output_dict['user'][user_key] = ''
         elif user_key in kept_user_objects_list:
@@ -102,87 +102,87 @@ def clean_anonymize_user(line_dict, output_dict, anon_df):
         elif user_key == 'url':
             if line_dict["user"][user_key]:
                 output_dict['user'][user_key] = anonymize(data_dict=line_dict['user'], dict_key=user_key,
-                                                          object_type='urls', anon_df=anon_df)
+                                                          object_type='urls', anon_dict=anon_dict)
             else:
                 output_dict['user'][user_key] = ''
         elif user_key == 'description':
             if line_dict["user"][user_key]:
-                output_dict['user'][user_key] = anonymize_text(line_dict["user"][user_key], anon_df=anon_df)
+                output_dict['user'][user_key] = anonymize_text(line_dict["user"][user_key], anon_dict=anon_dict)
             else:
                 output_dict['user'][user_key] = ''
     return output_dict
 
 
-def clean_anonymize_retweeted_status(line_dict, output_dict, anon_df):
+def clean_anonymize_retweeted_status(line_dict, output_dict, anon_dict):
     output_dict['retweeted_status'] = dict()
     for key in line_dict['retweeted_status'].keys():
         if key == 'user':
             output_dict['retweeted_status'] = clean_anonymize_user(line_dict=line_dict['retweeted_status'],
-                                                                   output_dict=output_dict['retweeted_status'], anon_df=anon_df)
+                                                                   output_dict=output_dict['retweeted_status'], anon_dict=anon_dict)
         elif key == 'url':
             if line_dict['retweeted_status'][key]:
                 output_dict['retweeted_status'][key] = anonymize(data_dict=line_dict['retweeted_status'],
-                                                                 dict_key=key, object_type='urls', anon_df=anon_df)
+                                                                 dict_key=key, object_type='urls', anon_dict=anon_dict)
             else:
                 output_dict['retweeted_status'][key] = ''
         elif key in kept_anonymized_tweet_objects_list:
             if line_dict['retweeted_status'][key]:
                 output_dict['retweeted_status'][key] = anonymize(data_dict=line_dict['retweeted_status'],
-                                                                 dict_key=key, object_type='tweet', anon_df=anon_df)
+                                                                 dict_key=key, object_type='tweet', anon_dict=anon_dict)
             else:
                 output_dict['retweeted_status'][key] = ''
         elif key in kept_tweet_objects_list:
             output_dict['retweeted_status'][key] = line_dict['retweeted_status'][key]
     return output_dict
 
-def clean_anonymize_quoted_status(line_dict, output_dict, anon_df):
+def clean_anonymize_quoted_status(line_dict, output_dict, anon_dict):
     output_dict['quoted_status'] = dict()
     for key in line_dict['quoted_status'].keys():
         if key == 'user':
             output_dict['quoted_status'] = clean_anonymize_user(line_dict=line_dict['quoted_status'],
-                                                                   output_dict=output_dict['quoted_status'], anon_df=anon_df)
+                                                                   output_dict=output_dict['quoted_status'], anon_dict=anon_dict)
         elif key == 'url':
             if line_dict['quoted_status'][key]:
                 output_dict['quoted_status'][key] = anonymize(data_dict=line_dict['quoted_status'],
-                                                                 dict_key=key, object_type='urls', anon_df=anon_df)
+                                                                 dict_key=key, object_type='urls', anon_dict=anon_dict)
             else:
                 output_dict['quoted_status'][key] = line_dict['quoted_status'][key]
         elif key in kept_anonymized_tweet_objects_list:
             if line_dict['quoted_status'][key]:
                 output_dict['quoted_status'][key] = anonymize(data_dict=line_dict['quoted_status'],
-                                                                 dict_key=key, object_type='tweet', anon_df=anon_df)
+                                                                 dict_key=key, object_type='tweet', anon_dict=anon_dict)
             else:
                 output_dict['quoted_status'][key] = line_dict['quoted_status'][key]
         elif key in kept_tweet_objects_list:
             output_dict['quoted_status'][key] = line_dict['quoted_status'][key]
     return output_dict
 
-def clean_anonymize_entities(line_dict, output_dict, anon_df):
+def clean_anonymize_entities(line_dict, output_dict, anon_dict):
     output_dict['entities'] = dict()
     for key in line_dict['entities'].keys():
         if key == 'user_mentions':
             user_mentions_list = list()
             for user_dict in line_dict['entities']['user_mentions']:
                 anonymized_user_dict = dict()
-                anonymized_user_dict['screen_name'] = anonymize(data_dict=user_dict, dict_key='screen_name', object_type='user', anon_df=anon_df)
+                anonymized_user_dict['screen_name'] = anonymize(data_dict=user_dict, dict_key='screen_name', object_type='user', anon_dict=anon_dict)
                 anonymized_user_dict['id_str'] = anonymize(data_dict=user_dict, dict_key='id_str',
-                                                                object_type='user', anon_df=anon_df)
+                                                                object_type='user', anon_dict=anon_dict)
                 user_mentions_list.append(anonymized_user_dict)
             output_dict['entities']['user_mentions'] = user_mentions_list
         elif key == 'urls':
             urls_list = list()
             for url_dict in line_dict['entities']['urls']:
                 anonymized_url_dict = dict()
-                anonymized_url_dict['url'] = anonymize(data_dict=url_dict, dict_key='url', object_type='urls', anon_df=anon_df)
+                anonymized_url_dict['url'] = anonymize(data_dict=url_dict, dict_key='url', object_type='urls', anon_dict=anon_dict)
                 anonymized_url_dict['expanded_url'] = anonymize(data_dict=url_dict, dict_key='expanded_url',
-                                                                object_type='urls', anon_df=anon_df)
+                                                                object_type='urls', anon_dict=anon_dict)
                 urls_list.append(anonymized_url_dict)
             output_dict['entities']['urls'] = urls_list
         elif key in kept_entities_list:
             output_dict['entities'][key] = line_dict['entities'][key]
     return output_dict
 
-def anonymize_text(text, anon_df):
+def anonymize_text(text, anon_dict):
     screen_name_list = [i[1:] for i in text.split() if i.startswith('@')]
     if text[:2] == 'RT':
         screen_name_list[0] = screen_name_list[0].replace(':', '')
@@ -190,42 +190,42 @@ def anonymize_text(text, anon_df):
     # build anonymized screen names and urls
     replace_dict = dict()
     for screen_name in screen_name_list:
-        replace_dict[screen_name] = anonymize(data_dict=screen_name, dict_key='screen_name', object_type='text', anon_df=anon_df)
+        replace_dict[screen_name] = anonymize(data_dict=screen_name, dict_key='screen_name', object_type='text', anon_dict=anon_dict)
     for url in url_list:
-        replace_dict[url] = anonymize(data_dict=url, dict_key='tweet_url', object_type='text', anon_df=anon_df)
+        replace_dict[url] = anonymize(data_dict=url, dict_key='tweet_url', object_type='text', anon_dict=anon_dict)
     # replace screen names and urls in text with anonymized versions
     anonymized_text = text
     for to_replace_str in replace_dict.keys():
         anonymized_text = anonymized_text.replace(to_replace_str, replace_dict[to_replace_str])
     return anonymized_text
 
-def clean_anonymize_text(line_dict, output_dict, anon_df):
+def clean_anonymize_text(line_dict, output_dict, anon_dict):
     if 'full_text' in line_dict.keys():
         tweet = line_dict['full_text']
     elif 'text' in line_dict.keys() and not 'full_text' in line_dict.keys():
         tweet = line_dict['text']
     else:
         tweet = []
-    output_dict['text'] = anonymize_text(tweet, anon_df=anon_df)
+    output_dict['text'] = anonymize_text(tweet, anon_dict=anon_dict)
     return output_dict
 
 
-def clean_anonymize_line_dict(line_dict, anon_df):
+def clean_anonymize_line_dict(line_dict, anon_dict):
     output_dict = dict()
     for key in line_dict.keys():
         if key == 'user':
-            output_dict = clean_anonymize_user(line_dict=line_dict, output_dict=output_dict, anon_df=anon_df)
+            output_dict = clean_anonymize_user(line_dict=line_dict, output_dict=output_dict, anon_dict=anon_dict)
         elif key == 'retweeted_status':
-            output_dict = clean_anonymize_retweeted_status(line_dict=line_dict, output_dict=output_dict, anon_df=anon_df)
+            output_dict = clean_anonymize_retweeted_status(line_dict=line_dict, output_dict=output_dict, anon_dict=anon_dict)
         elif key == 'quoted_status':
-            output_dict = clean_anonymize_quoted_status(line_dict=line_dict, output_dict=output_dict, anon_df=anon_df)
+            output_dict = clean_anonymize_quoted_status(line_dict=line_dict, output_dict=output_dict, anon_dict=anon_dict)
         elif key in ['text', 'full_text']:
-            output_dict = clean_anonymize_text(line_dict=line_dict, output_dict=output_dict, anon_df=anon_df)
+            output_dict = clean_anonymize_text(line_dict=line_dict, output_dict=output_dict, anon_dict=anon_dict)
         elif key == 'entities':
-            output_dict = clean_anonymize_entities(line_dict=line_dict, output_dict=output_dict, anon_df=anon_df)
+            output_dict = clean_anonymize_entities(line_dict=line_dict, output_dict=output_dict, anon_dict=anon_dict)
         elif key in kept_anonymized_tweet_objects_list:
             if line_dict[key]:
-                output_dict[key] = anonymize(data_dict=line_dict, dict_key=key, object_type='tweet', anon_df=anon_df)
+                output_dict[key] = anonymize(data_dict=line_dict, dict_key=key, object_type='tweet', anon_dict=anon_dict)
             else:
                 output_dict[key] = line_dict[key]
         elif key in kept_tweet_objects_list:
@@ -241,8 +241,9 @@ def use_input_path_to_define_output(input_path):
 
 if __name__ == '__main__':
     args = get_args_from_command_line()
-    anon_path = os.path.join(args.anon_db_folder_path, 'anon-DB.csv')
-    anon_df = pd.read_csv(anon_path, keep_default_na=False)
+    anon_path = os.path.join(args.anon_db_folder_path, 'anon-DB.pickle')
+    with open(anon_path, 'rb') as handle:
+        anon_dict = pickle.load(handle)
     if args.data_type == 'timelines':
         if not os.path.exists(f'{args.input_path}_encrypted'):
             os.makedirs(f'{args.input_path}_encrypted', exist_ok=True)
@@ -260,5 +261,5 @@ if __name__ == '__main__':
                             # try:
                             line_dict = ast.literal_eval(line)
                             if not 'anon' in line_dict.keys():
-                                output_dict = clean_anonymize_line_dict(line_dict=line_dict, anon_df=anon_df)
+                                output_dict = clean_anonymize_line_dict(line_dict=line_dict, anon_dict=anon_dict)
                                 print(json.dumps(output_dict), file=out)

@@ -65,8 +65,10 @@ if __name__ == '__main__':
     encryption_df = pd.DataFrame(range_to_key_dict.items(), columns=['hash_range', 'encryption_key'])
     assert len(encryption_df['hash_range']) == encryption_df.shape[0]
     assert len(encryption_df['encryption_key']) == encryption_df.shape[0]
-    anon_DB_path = os.path.join(args.output_path, 'anon-DB.csv')
-    encryption_df.to_csv(anon_DB_path, index=False)
+    anon_DB_path = os.path.join(args.output_path, 'anon-DB.pickle')
+    with open(anon_DB_path, 'wb') as handle:
+        pickle.dump(range_to_key_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    # encryption_df.to_csv(anon_DB_path, index=False)
     # encrypt the anon-DB
     # write_key(output_path=args.output_path)
     # key = load_key_to_decrypt_anon(anon_path=args.output_path)
