@@ -9,6 +9,7 @@ from utils import load_key_to_decrypt_anon
 from Crypto.Random import get_random_bytes
 from Crypto.Cipher import AES
 from base64 import b64encode
+import pickle
 
 logging.basicConfig(format='%(asctime)s - %(levelname)s - %(name)s -   %(message)s',
                     datefmt='%m/%d/%Y %H:%M:%S',
