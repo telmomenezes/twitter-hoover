@@ -11,6 +11,7 @@ from hoover.rate_control import RateControl
 from hoover.users import Users, get_user_ids
 from datetime import datetime
 from hoover.anon.anonymize_v1 import clean_anonymize_line_dict, anonymize
+import time
 
 
 def last_line(file):
@@ -116,8 +117,11 @@ class Timelines(RateControl):
                         max_id = tweet['id']
                         if str2datetime(tweet['created_at']) > min_date:
                             if self.anon == 1:
+                                start = time.time()
                                 anon_tweet = clean_anonymize_line_dict(line_dict=tweet,
                                                                        anon_db_folder_path=self.anon_db_folder_path)
+                                end = time.time()
+                                print(f'Time elapsed per tweet: {end - start}')
                                 print(count)
                                 tweet = anon_tweet
                             tweets.append(tweet)
