@@ -113,6 +113,7 @@ class Timelines(RateControl):
                 timeline = self.get_timeline(user_id, max_id - 1)
                 if timeline:
                     print('{} tweets received'.format(str(len(timeline))))
+                    time_elapsed = 0
                     for count, tweet in enumerate(timeline):
                         max_id = tweet['id']
                         if str2datetime(tweet['created_at']) > min_date:
@@ -122,7 +123,10 @@ class Timelines(RateControl):
                                                                        anon_db_folder_path=self.anon_db_folder_path)
                                 end = time.time()
                                 print(f'Time elapsed per tweet: {end - start}')
+                                time_elapsed += end - start
                                 print(count)
+                                if count % 10 == 0:
+                                    print(f'Average time elapsed (N={count}): {time_elapsed/count}')
                                 tweet = anon_tweet
                             tweets.append(tweet)
                         else:
