@@ -126,7 +126,7 @@ class Timelines(RateControl):
                                 time_elapsed += end - start
                                 print(count)
                                 if count % 10 == 0:
-                                    print(f'Average time elapsed (N={count}): {time_elapsed/count}')
+                                    print(f'Average time elapsed (N={count+1}): {time_elapsed/(count+1)}')
                                 tweet = anon_tweet
                             tweets.append(tweet)
                         else:
