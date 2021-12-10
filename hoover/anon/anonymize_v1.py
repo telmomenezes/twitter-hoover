@@ -59,6 +59,14 @@ def aes_siv_encrypt(key, data):
     ciphertext, tag = cipher.encrypt_and_digest(data)
     return [ b64encode(x).decode('utf-8') for x in [ciphertext, tag] ]
 
+def isascii(s):
+    try:
+        s.encode('ascii')
+    except UnicodeEncodeError:
+        return False
+    else:
+        return True
+
 
 def anonymize(data_dict, dict_key, object_type, anon_dict, social_network='T'):
     """Anonymize the selected id based on id type.
@@ -78,7 +86,7 @@ def anonymize(data_dict, dict_key, object_type, anon_dict, social_network='T'):
         id = data_dict
     else:
         id = data_dict[dict_key]
-    if not id.isascii():
+    if not isascii(id):
         id = id.encode("ascii", "ignore").decode()
     hashed_id = hash_encode(id=id)
     if hashed_id:
