@@ -247,6 +247,23 @@ def clean_anonymize_line_dict(line_dict, anon_dict):
     output_dict['anon'] = 1
     return output_dict
 
+def clean_line(line):
+    line = line.replace('false', 'False').replace('true', 'True').replace('null', 'None').replace('\n', '')
+    line_split = line.split('"source"')
+    final_list = list()
+    for count, split in enumerate(line_split):
+        if count > 0:
+            split = split.split('",', 1)[1]
+        final_list.append(split)
+    clean_line = ''.join(final_list)
+    if not isascii(clean_line):
+        clean_line = clean_line.encode("ascii", "ignore").decode()
+    if '}{"created_at"' in clean_line:
+        clean_line_split = clean_line.split('}{"created_at"')
+        clean_line_split[0] = f'{clean_line_split[0]}' + '}'
+        for i in range(1, len(clean_line_split)):
+            clean_line_split[i] = '{' + f'"created_at"{clean_line_split[i]}'
+    return clean_line_split
 
 def use_input_path_to_define_output(input_path):
     user_folder_path = os.path.basename(os.path.dirname(input_path))
@@ -276,12 +293,13 @@ if __name__ == '__main__':
                     with gzip.open(path_to_encrypt, 'rt') as f:
                         with gzip.open(path_to_encrypted, 'wt') as out:
                             for line in f:
-                                line = line.replace('false', 'False').replace('true', 'True').replace('null', 'None')
-                                # try:
-                                line_dict = ast.literal_eval(line)
-                                if not 'anon' in line_dict.keys():
-                                    output_dict = clean_anonymize_line_dict(line_dict=line_dict, anon_dict=anon_dict)
-                                    print(json.dumps(output_dict), file=out)
+                                line = clean_line(line)
+                                for clean_line in clean_line_split:
+                                    # try:
+                                    line_dict = ast.literal_eval(clean_line)
+                                    if not 'anon' in line_dict.keys():
+                                        output_dict = clean_anonymize_line_dict(line_dict=line_dict, anon_dict=anon_dict)
+                                        print(json.dumps(output_dict), file=out)
     except:
         logger.exception('Got exception on main handler')
         raise
