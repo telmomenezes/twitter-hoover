@@ -29,7 +29,7 @@ def get_args_from_command_line():
     """Parse the command line arguments."""
     parser = argparse.ArgumentParser()
     parser.add_argument("--input_path", type=str, help="Path to the file to be encrypted.")
-    parser.add_argument("--anon_db_folder_path", type=str, help="Path to anon DB.")
+    parser.add_argument("--anon_db_folder_path", type=str, help="Path to anon DB.", default='/home/socsemics/anon')
     # parser.add_argument("--compressed", type=str, help="Whether the files are compressed or not.")
     parser.add_argument("--data_type", type=str, help="Type of collected data.")
     args = parser.parse_args()
