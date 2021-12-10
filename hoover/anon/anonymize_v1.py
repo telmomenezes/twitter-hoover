@@ -18,6 +18,7 @@ import json
 from Crypto.Cipher import AES
 from base64 import b64encode, b64decode
 import pickle
+import time
 
 logging.basicConfig(format='%(asctime)s - %(levelname)s - %(name)s -   %(message)s',
                     datefmt='%m/%d/%Y %H:%M:%S',
@@ -196,7 +197,8 @@ def anonymize_text(text, anon_dict):
     # replace screen names and urls in text with anonymized versions
     anonymized_text = text
     for to_replace_str in replace_dict.keys():
-        anonymized_text = anonymized_text.replace(to_replace_str, replace_dict[to_replace_str])
+        if replace_dict[to_replace_str]:
+            anonymized_text = anonymized_text.replace(to_replace_str, replace_dict[to_replace_str])
     return anonymized_text
 
 def clean_anonymize_text(line_dict, output_dict, anon_dict):
@@ -244,11 +246,15 @@ if __name__ == '__main__':
     anon_path = os.path.join(args.anon_db_folder_path, 'anon-DB.pickle')
     with open(anon_path, 'rb') as handle:
         anon_dict = pickle.load(handle)
+    logger.info('Loaded anon DB')
+    start_time = time.time()
     if args.data_type == 'timelines':
         if not os.path.exists(f'{args.input_path}_encrypted'):
             os.makedirs(f'{args.input_path}_encrypted', exist_ok=True)
         folder_list = os.listdir(args.input_path)
-        for user_folder in folder_list:
+        for count, user_folder in enumerate(folder_list):
+            logger.info(f'User #{count}/{len(folder_list)}')
+            logger.info(f'Encrypting timeline from user {user_folder}')
             paths_to_encrypt_list = Path(os.path.join(args.input_path, user_folder)).glob('*.json.gz')
             for path_to_encrypt in paths_to_encrypt_list:
                 path_to_encrypted = use_input_path_to_define_output(input_path=path_to_encrypt)
@@ -263,3 +269,5 @@ if __name__ == '__main__':
                             if not 'anon' in line_dict.keys():
                                 output_dict = clean_anonymize_line_dict(line_dict=line_dict, anon_dict=anon_dict)
                                 print(json.dumps(output_dict), file=out)
+    end_time = time.time()
+    logger.info(f'Total duration: {end_time - start_time}')
