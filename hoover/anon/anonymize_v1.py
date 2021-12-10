@@ -295,7 +295,7 @@ if __name__ == '__main__':
                     with gzip.open(path_to_encrypt, 'rt') as f:
                         with gzip.open(path_to_encrypted, 'wt') as out:
                             for line in f:
-                                line = clean_line(line)
+                                clean_line_split = clean_line(line)
                                 for clean_line in clean_line_split:
                                     # try:
                                     line_dict = ast.literal_eval(clean_line)
