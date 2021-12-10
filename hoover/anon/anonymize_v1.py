@@ -269,8 +269,23 @@ def clean_line(line):
 
 def use_input_path_to_define_output(input_path):
     user_folder_path = os.path.basename(os.path.dirname(input_path))
-    filename = os.path.basename(input_path)
-    return f'{args.input_path}_encrypted/{user_folder_path}/{filename}'
+    user_id = os.path.basename(input_path)
+    anon_user_id = anonymize(data_dict={'id_str': str(user_id)}, dict_key='id_str', object_type='user',
+                             anon_dict=anon_dict)
+    return f'{args.input_path}_encrypted/{user_folder_path}/{anon_user_id}'
+
+
+def display_time(seconds, intervals, granularity=4):
+    result = []
+
+    for name, count in intervals:
+        value = seconds // count
+        if value:
+            seconds -= value * count
+            if value == 1:
+                name = name.rstrip('s')
+            result.append("{} {}".format(value, name))
+    return ', '.join(result[:granularity])
 
 if __name__ == '__main__':
     args = get_args_from_command_line()
@@ -278,17 +293,28 @@ if __name__ == '__main__':
     with open(anon_path, 'rb') as handle:
         anon_dict = pickle.load(handle)
     logger.info('Loaded anon DB')
+    intervals = (
+        ('weeks', 604800),  # 60 * 60 * 24 * 7
+        ('days', 86400),  # 60 * 60 * 24
+        ('hours', 3600),  # 60 * 60
+        ('minutes', 60),
+        ('seconds', 1),
+    )
     start_time = time.time()
     try:
         if args.data_type == 'timelines':
             if not os.path.exists(f'{args.input_path}_encrypted'):
                 os.makedirs(f'{args.input_path}_encrypted', exist_ok=True)
             folder_list = os.listdir(args.input_path)
+            total_count_tweet = 0
             for count, user_folder in enumerate(folder_list):
                 logger.info(f'User #{count}/{len(folder_list)}')
                 logger.info(f'Encrypting timeline from user {user_folder}')
+                start_user = time.time()
                 paths_to_encrypt_list = Path(os.path.join(args.input_path, user_folder)).glob('*.json.gz')
+                count_tweet = 0
                 for path_to_encrypt in paths_to_encrypt_list:
+                    logger.info(f'Encrypting {path_to_encrypt}')
                     path_to_encrypted = use_input_path_to_define_output(input_path=path_to_encrypt)
                     if not os.path.exists(os.path.dirname(path_to_encrypted)):
                         os.makedirs(os.path.dirname(path_to_encrypted), exist_ok=True)
@@ -297,13 +323,23 @@ if __name__ == '__main__':
                             for line in f:
                                 clean_line_split = clean_line(line=line)
                                 for cleaned_line in clean_line_split:
+                                    count_tweet += 1
                                     # try:
                                     line_dict = ast.literal_eval(cleaned_line)
                                     if not 'anon' in line_dict.keys():
                                         output_dict = clean_anonymize_line_dict(line_dict=line_dict, anon_dict=anon_dict)
                                         print(json.dumps(output_dict), file=out)
+                current_time = time.time()
+                logger.info(f'Elapsed time for user {user_folder}: {display_time(seconds=current_time - start_user, intervals=intervals)}')
+                logger.info(f'# anonymized tweets: {count_tweet}')
+                logger.info(f'Average anon time per tweet: {display_time(seconds=(current_time - start_user)/count_tweet, intervals=intervals)}')
+                logger.info(f'Elapsed time since launch: {display_time(seconds=current_time - start_time, intervals=intervals)}')
+                total_count_tweet =+ count_tweet
+            end_time = time.time()
+            logger.info(f'Total duration: {display_time(seconds=end_time - start_time, intervals=intervals)}')
+            logger.info(f'Total # of anon tweets: {total_count_tweet}')
+            logger.info(f'# of users covered: {count}')
     except:
         logger.exception('Got exception on main handler')
         raise
-    end_time = time.time()
-    logger.info(f'Total duration: {end_time - start_time}')
+
