@@ -263,7 +263,9 @@ def clean_line(line):
         clean_line_split[0] = f'{clean_line_split[0]}' + '}'
         for i in range(1, len(clean_line_split)):
             clean_line_split[i] = '{' + f'"created_at"{clean_line_split[i]}'
-    return clean_line_split
+        return clean_line_split
+    else:
+        return [clean_line]
 
 def use_input_path_to_define_output(input_path):
     user_folder_path = os.path.basename(os.path.dirname(input_path))
