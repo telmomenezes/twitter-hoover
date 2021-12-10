@@ -268,11 +268,11 @@ def clean_line(line):
         return [clean_line]
 
 def use_input_path_to_define_output(input_path):
-    user_folder_path = os.path.basename(os.path.dirname(input_path))
-    user_id = os.path.basename(input_path)
+    user_id = os.path.basename(os.path.dirname(input_path))
+    filename = os.path.basename(input_path)
     anon_user_id = anonymize(data_dict={'id_str': str(user_id)}, dict_key='id_str', object_type='user',
                              anon_dict=anon_dict)
-    return f'{args.input_path}_encrypted/{user_folder_path}/{anon_user_id}'
+    return f'{args.input_path}_encrypted/{anon_user_id}/{filename}'
 
 
 def display_time(seconds, intervals, granularity=4):
