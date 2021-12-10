@@ -284,5 +284,6 @@ if __name__ == '__main__':
                                     print(json.dumps(output_dict), file=out)
     except:
         logger.exception('Got exception on main handler')
+        raise
     end_time = time.time()
     logger.info(f'Total duration: {end_time - start_time}')
