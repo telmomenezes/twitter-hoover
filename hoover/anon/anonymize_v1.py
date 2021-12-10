@@ -336,6 +336,7 @@ if __name__ == '__main__':
                     logger.info(f'Average anon time per tweet: {(current_time - start_user)/count_tweet}')
                 logger.info(f'Elapsed time since launch: {display_time(seconds=current_time - start_time, intervals=intervals)}')
                 total_count_tweet =+ count_tweet
+                logger.info('*************************************')
             end_time = time.time()
             logger.info(f'Total duration: {display_time(seconds=end_time - start_time, intervals=intervals)}')
             logger.info(f'Total # of anon tweets: {total_count_tweet}')
