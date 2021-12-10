@@ -20,7 +20,9 @@ from base64 import b64encode, b64decode
 import pickle
 import time
 
-logging.basicConfig(format='%(asctime)s - %(levelname)s - %(name)s -   %(message)s',
+logging.basicConfig(filename='/home/socsemics/data/EU19/timelines_encrypted/log.log',
+                            filemode='a',
+                    format='%(asctime)s - %(levelname)s - %(name)s -   %(message)s',
                     datefmt='%m/%d/%Y %H:%M:%S',
                     level=logging.INFO)
 logger = logging.getLogger(__name__)
