@@ -332,7 +332,8 @@ if __name__ == '__main__':
                 current_time = time.time()
                 logger.info(f'Elapsed time for user {user_folder}: {display_time(seconds=current_time - start_user, intervals=intervals)}')
                 logger.info(f'# anonymized tweets: {count_tweet}')
-                logger.info(f'Average anon time per tweet: {display_time(seconds=(current_time - start_user)/count_tweet, intervals=intervals)}')
+                if count_tweet>0:
+                    logger.info(f'Average anon time per tweet: {display_time(seconds=(current_time - start_user)/count_tweet, intervals=intervals)}')
                 logger.info(f'Elapsed time since launch: {display_time(seconds=current_time - start_time, intervals=intervals)}')
                 total_count_tweet =+ count_tweet
             end_time = time.time()
