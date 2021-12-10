@@ -78,6 +78,8 @@ def anonymize(data_dict, dict_key, object_type, anon_dict, social_network='T'):
         id = data_dict
     else:
         id = data_dict[dict_key]
+    if not id.isascii():
+        id = id.encode("ascii", "ignore").decode()
     hashed_id = hash_encode(id=id)
     if hashed_id:
         hash_range_str = hashed_id[:3].decode()
@@ -185,7 +187,7 @@ def clean_anonymize_entities(line_dict, output_dict, anon_dict):
 
 def anonymize_text(text, anon_dict):
     screen_name_list = [i[1:] for i in text.split() if i.startswith('@')]
-    if text[:2] == 'RT':
+    if text[:2] == 'RT' and len(screen_name_list) > 0:
         screen_name_list[0] = screen_name_list[0].replace(':', '')
     url_list = re.findall(r'(https?://\S+)', text)
     # build anonymized screen names and urls
