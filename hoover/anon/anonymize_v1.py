@@ -335,6 +335,8 @@ if __name__ == '__main__':
                         logger.info(f'Output folder already exists. Deleting and recreating.')
                         shutil.rmtree(f'{args.input_path}_encrypted/{anon_user_folder}')
                         os.makedirs(f'{args.input_path}_encrypted/{anon_user_folder}')
+                    else:
+                        os.makedirs(f'{args.input_path}_encrypted/{anon_user_folder}')
                     count_tweet = 0
                     for path_to_encrypt in paths_to_encrypt_list:
                         logger.info(f'Encrypting {path_to_encrypt}')
