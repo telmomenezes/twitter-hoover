@@ -297,7 +297,7 @@ def get_list_of_already_anon_users(log_path):
 
 def save_id_of_anon_user(log_path, anon_id):
     with open(log_path, "a") as text_file:
-        print(f'{anon_id}\n', out=text_file)
+        print(f'{anon_id}\n', file=text_file)
 
 if __name__ == '__main__':
     args = get_args_from_command_line()
