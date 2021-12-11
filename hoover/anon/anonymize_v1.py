@@ -35,6 +35,8 @@ def get_args_from_command_line():
     parser.add_argument("--anon_db_folder_path", type=str, help="Path to anon DB.", default='/home/socsemics/anon')
     # parser.add_argument("--compressed", type=str, help="Whether the files are compressed or not.")
     parser.add_argument("--data_type", type=str, help="Type of collected data.")
+    parser.add_argument("--resume", type=int, help="Whether to resume or not")
+
     args = parser.parse_args()
     return args
 
@@ -251,10 +253,11 @@ def clean_line(line):
     line = line.replace('false', 'False').replace('true', 'True').replace('null', 'None').replace('\n', '')
     line_split = line.split('"source"')
     final_list = list()
-    for count, split in enumerate(line_split):
+    for count, chunk in enumerate(line_split):
         if count > 0:
-            split = split.split('",', 1)[1]
-        final_list.append(split)
+            logger.info(chunk)
+            chunk = chunk.split('",', 1)[1]
+        final_list.append(chunk)
     clean_line = ''.join(final_list)
     if not isascii(clean_line):
         clean_line = clean_line.encode("ascii", "ignore").decode()
@@ -277,7 +280,6 @@ def use_input_path_to_define_output(input_path):
 
 def display_time(seconds, intervals, granularity=4):
     result = []
-
     for name, count in intervals:
         value = seconds // count
         if value:
@@ -286,6 +288,14 @@ def display_time(seconds, intervals, granularity=4):
                 name = name.rstrip('s')
             result.append("{} {}".format(value, name))
     return ', '.join(result[:granularity])
+
+def get_list_of_already_anon_users(log_path):
+    with open(log_path) as file:
+        lines = file.readlines()
+    user_id_list = list()
+    for line in lines:
+        user_id_list.append(line.replace('\n', ''))
+    return user_id_list
 
 if __name__ == '__main__':
     args = get_args_from_command_line()
@@ -300,7 +310,12 @@ if __name__ == '__main__':
         ('minutes', 60),
         ('seconds', 1),
     )
+    if args.resume == 1:
+        already_anon_list = get_list_of_already_anon_users(log_path=f"{args.input_path}_encrypted/already_anon.log")
+    else:
+        already_anon_list = list()
     start_time = time.time()
+    f = open(f"{args.input_path}_encrypted/already_anon.log", "w+")
     try:
         if args.data_type == 'timelines':
             if not os.path.exists(f'{args.input_path}_encrypted'):
@@ -308,40 +323,46 @@ if __name__ == '__main__':
             folder_list = os.listdir(args.input_path)
             total_count_tweet = 0
             for count, user_folder in enumerate(folder_list):
-                logger.info(f'User #{count}/{len(folder_list)}')
-                logger.info(f'Encrypting timeline from user {user_folder}')
-                start_user = time.time()
-                paths_to_encrypt_list = Path(os.path.join(args.input_path, user_folder)).glob('*.json.gz')
-                count_tweet = 0
-                for path_to_encrypt in paths_to_encrypt_list:
-                    logger.info(f'Encrypting {path_to_encrypt}')
-                    path_to_encrypted = use_input_path_to_define_output(input_path=path_to_encrypt)
-                    if not os.path.exists(os.path.dirname(path_to_encrypted)):
-                        os.makedirs(os.path.dirname(path_to_encrypted), exist_ok=True)
-                    with gzip.open(path_to_encrypt, 'rt') as f:
-                        with gzip.open(path_to_encrypted, 'wt') as out:
-                            for line in f:
-                                clean_line_split = clean_line(line=line)
-                                for cleaned_line in clean_line_split:
-                                    count_tweet += 1
-                                    # try:
-                                    line_dict = ast.literal_eval(cleaned_line)
-                                    if not 'anon' in line_dict.keys():
-                                        output_dict = clean_anonymize_line_dict(line_dict=line_dict, anon_dict=anon_dict)
-                                        print(json.dumps(output_dict), file=out)
-                current_time = time.time()
-                logger.info(f'Elapsed time for user {user_folder}: {display_time(seconds=current_time - start_user, intervals=intervals)}')
-                logger.info(f'# anonymized tweets: {count_tweet}')
-                if count_tweet>0:
-                    logger.info(f'Average anon time per tweet: {(current_time - start_user)/count_tweet}')
-                logger.info(f'Elapsed time since launch: {display_time(seconds=current_time - start_time, intervals=intervals)}')
-                total_count_tweet =+ count_tweet
-                logger.info('*************************************')
+                if user_folder not in already_anon_list:
+                    logger.info(f'User #{count}/{len(folder_list)}')
+                    logger.info(f'Encrypting timeline from user {user_folder}')
+                    start_user = time.time()
+                    paths_to_encrypt_list = Path(os.path.join(args.input_path, user_folder)).glob('*.json.gz')
+                    count_tweet = 0
+                    for path_to_encrypt in paths_to_encrypt_list:
+                        logger.info(f'Encrypting {path_to_encrypt}')
+                        path_to_encrypted = use_input_path_to_define_output(input_path=path_to_encrypt)
+                        if not os.path.exists(os.path.dirname(path_to_encrypted)):
+                            os.makedirs(os.path.dirname(path_to_encrypted), exist_ok=True)
+                        with gzip.open(path_to_encrypt, 'rt') as f:
+                            with gzip.open(path_to_encrypted, 'wt') as out:
+                                for line in f:
+                                    clean_line_split = clean_line(line=line)
+                                    for cleaned_line in clean_line_split:
+                                        count_tweet += 1
+                                        # try:
+                                        line_dict = ast.literal_eval(cleaned_line)
+                                        if not 'anon' in line_dict.keys():
+                                            output_dict = clean_anonymize_line_dict(line_dict=line_dict, anon_dict=anon_dict)
+                                            print(json.dumps(output_dict), file=out)
+                    current_time = time.time()
+                    logger.info(f'Elapsed time for user {user_folder}: {display_time(seconds=current_time - start_user, intervals=intervals)}')
+                    logger.info(f'# anonymized tweets: {count_tweet}')
+                    if count_tweet>0:
+                        logger.info(f'Average anon time per tweet: {(current_time - start_user)/count_tweet}')
+                    logger.info(f'Elapsed time since launch: {display_time(seconds=current_time - start_time, intervals=intervals)}')
+                    total_count_tweet =+ count_tweet
+                    f.write(f'{user_folder}\n')
+                    logger.info('*************************************')
+                else:
+                    logger.info(f'User {user_folder} already anonymized. Skipping')
             end_time = time.time()
             logger.info(f'Total duration: {display_time(seconds=end_time - start_time, intervals=intervals)}')
             logger.info(f'Total # of anon tweets: {total_count_tweet}')
             logger.info(f'# of users covered: {count}')
+            f.close()
     except:
         logger.exception('Got exception on main handler')
+        f.close()
         raise
 
