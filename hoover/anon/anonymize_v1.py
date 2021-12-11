@@ -251,7 +251,7 @@ def clean_anonymize_line_dict(line_dict, anon_dict):
 
 def clean_line(line):
     line = line.replace('false', 'False').replace('true', 'True').replace('null', 'None').replace('\n', '')
-    line_split = line.split('"source"')
+    line_split = line.split('"source":')
     final_list = list()
     logger.info(line_split)
     for count, chunk in enumerate(line_split):
