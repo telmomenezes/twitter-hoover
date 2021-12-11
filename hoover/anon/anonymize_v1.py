@@ -364,9 +364,7 @@ if __name__ == '__main__':
             logger.info(f'Total duration: {display_time(seconds=end_time - start_time, intervals=intervals)}')
             logger.info(f'Total # of anon tweets: {total_count_tweet}')
             logger.info(f'# of users covered: {count}')
-            f.close()
     except:
         logger.exception('Got exception on main handler')
-        f.close()
         raise
 
