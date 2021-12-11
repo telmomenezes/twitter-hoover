@@ -256,7 +256,7 @@ def clean_line(line):
     logger.info(line_split)
     for count, chunk in enumerate(line_split):
         if count > 0:
-            chunk = chunk.split('",', 1)[1]
+            chunk = chunk.split(',', 1)[1]
         final_list.append(chunk)
     clean_line = ''.join(final_list)
     if not isascii(clean_line):
@@ -297,6 +297,10 @@ def get_list_of_already_anon_users(log_path):
         user_id_list.append(line.replace('\n', ''))
     return user_id_list
 
+def save_id_of_anon_user(log_path, anon_id):
+    with open(log_path, "a") as text_file:
+        print(f'{anon_id}\n', out=text_file)
+
 if __name__ == '__main__':
     args = get_args_from_command_line()
     anon_path = os.path.join(args.anon_db_folder_path, 'anon-DB.pickle')
@@ -315,7 +319,6 @@ if __name__ == '__main__':
     else:
         already_anon_list = list()
     start_time = time.time()
-    f = open(f"{args.input_path}_encrypted/already_anon.log", "w+")
     try:
         if args.data_type == 'timelines':
             if not os.path.exists(f'{args.input_path}_encrypted'):
@@ -324,7 +327,7 @@ if __name__ == '__main__':
             total_count_tweet = 0
             for count, user_folder in enumerate(folder_list):
                 if user_folder not in already_anon_list:
-                    logger.info(f'User #{count}/{len(folder_list)}')
+                    logger.info(f'User #{count + len(already_anon_list)}/{len(folder_list)}')
                     logger.info(f'Encrypting timeline from user {user_folder}')
                     start_user = time.time()
                     paths_to_encrypt_list = Path(os.path.join(args.input_path, user_folder)).glob('*.json.gz')
@@ -352,7 +355,7 @@ if __name__ == '__main__':
                         logger.info(f'Average anon time per tweet: {(current_time - start_user)/count_tweet}')
                     logger.info(f'Elapsed time since launch: {display_time(seconds=current_time - start_time, intervals=intervals)}')
                     total_count_tweet =+ count_tweet
-                    f.write(f'{user_folder}\n')
+                    save_id_of_anon_user(log_path=f"{args.input_path}_encrypted/already_anon.log", anon_id=user_folder)
                     logger.info('*************************************')
                 else:
                     logger.info(f'User {user_folder} already anonymized. Skipping')
