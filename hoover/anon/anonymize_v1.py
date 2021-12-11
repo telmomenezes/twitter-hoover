@@ -330,7 +330,7 @@ if __name__ == '__main__':
                     logger.info(f'Encrypting timeline from user {user_folder}')
                     start_user = time.time()
                     paths_to_encrypt_list = Path(os.path.join(args.input_path, user_folder)).glob('*.json.gz')
-                    anon_user_folder = anonymize(data_dict={'id_str': str(user_id)}, dict_key='id_str', object_type='user', anon_dict=anon_dict)
+                    anon_user_folder = anonymize(data_dict={'id_str': str(user_folder)}, dict_key='id_str', object_type='user', anon_dict=anon_dict)
                     if os.path.exists(f'{args.input_path}_encrypted/{anon_user_folder}'):
                         logger.info(f'Output folder already exists. Deleting and recreating.')
                         shutil.rmtree(f'{args.input_path}_encrypted/{anon_user_folder}')
