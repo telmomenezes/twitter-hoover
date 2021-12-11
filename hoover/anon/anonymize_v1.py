@@ -19,6 +19,7 @@ from Crypto.Cipher import AES
 from base64 import b64encode, b64decode
 import pickle
 import time
+import shutil
 
 logging.basicConfig(filename='/home/data/socsemics/code/twitter-hoover/hoover/anon/logs/eu19.log',
                             filemode='a',
@@ -339,7 +340,7 @@ if __name__ == '__main__':
                         if not os.path.exists(os.path.dirname(path_to_encrypted)):
                             os.makedirs(os.path.dirname(path_to_encrypted))
                         else:
-                            os.rmdir(os.path.dirname(path_to_encrypted))
+                            shutil.rmtree(os.path.dirname(path_to_encrypted))
                             os.makedirs(os.path.dirname(path_to_encrypted))
                         with gzip.open(path_to_encrypt, 'rt') as f:
                             with gzip.open(path_to_encrypted, 'wt') as out:
