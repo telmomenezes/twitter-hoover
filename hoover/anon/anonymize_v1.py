@@ -256,7 +256,7 @@ def clean_line(line):
     logger.info(line_split)
     for count, chunk in enumerate(line_split):
         if count > 0:
-            chunk = chunk.split(',', 1)[1]
+            chunk = chunk.split('",', 1)[1]
         final_list.append(chunk)
     clean_line = ''.join(final_list)
     if not isascii(clean_line):
@@ -328,7 +328,7 @@ if __name__ == '__main__':
             total_count_tweet = 0
             for count, user_folder in enumerate(folder_list):
                 if user_folder not in already_anon_list:
-                    logger.info(f'User #{count + len(already_anon_list)}/{len(folder_list)}')
+                    logger.info(f'User #{count}/{len(folder_list)}')
                     logger.info(f'Encrypting timeline from user {user_folder}')
                     start_user = time.time()
                     paths_to_encrypt_list = Path(os.path.join(args.input_path, user_folder)).glob('*.json.gz')
