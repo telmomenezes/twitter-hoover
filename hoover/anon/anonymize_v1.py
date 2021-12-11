@@ -253,9 +253,9 @@ def clean_line(line):
     line = line.replace('false', 'False').replace('true', 'True').replace('null', 'None').replace('\n', '')
     line_split = line.split('"source"')
     final_list = list()
+    logger.info(line_split)
     for count, chunk in enumerate(line_split):
         if count > 0:
-            logger.info(chunk)
             chunk = chunk.split('",', 1)[1]
         final_list.append(chunk)
     clean_line = ''.join(final_list)
