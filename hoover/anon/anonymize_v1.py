@@ -340,6 +340,7 @@ if __name__ == '__main__':
                         if not os.path.exists(os.path.dirname(path_to_encrypted)):
                             os.makedirs(os.path.dirname(path_to_encrypted))
                         else:
+                            logger.info(f'Existing folder for user {user_folder}. Removing it and recreating it')
                             shutil.rmtree(os.path.dirname(path_to_encrypted))
                             os.makedirs(os.path.dirname(path_to_encrypted))
                         with gzip.open(path_to_encrypt, 'rt') as f:
