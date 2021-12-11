@@ -337,7 +337,10 @@ if __name__ == '__main__':
                         logger.info(f'Encrypting {path_to_encrypt}')
                         path_to_encrypted = use_input_path_to_define_output(input_path=path_to_encrypt)
                         if not os.path.exists(os.path.dirname(path_to_encrypted)):
-                            os.makedirs(os.path.dirname(path_to_encrypted), exist_ok=True)
+                            os.makedirs(os.path.dirname(path_to_encrypted))
+                        else:
+                            os.rmdir(os.path.dirname(path_to_encrypted))
+                            os.makedirs(os.path.dirname(path_to_encrypted))
                         with gzip.open(path_to_encrypt, 'rt') as f:
                             with gzip.open(path_to_encrypted, 'wt') as out:
                                 for line in f:
