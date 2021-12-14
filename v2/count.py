@@ -1,5 +1,5 @@
 import tweepy
-from hoover.anon.utils import retrieve_keys, build_search_query, save_to_json
+from hoover.anon.utils import retrieve_keys, build_search_query_keywords, save_to_json
 import argparse
 import logging
 
