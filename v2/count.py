@@ -32,7 +32,7 @@ def main():
                            consumer_secret=consumer_secret,
                            bearer_token=bearer_token,
                            wait_on_rate_limit=True)
-    query = build_search_query_keywords(keywords_path=keywords_path, lang=args.lang)
+    query = build_search_query_keywords(keywords_path=args.keywords_path, lang=args.lang)
     logger.info(f'Search query: {query}')
     if args.count_method == 'full_archive':
         start_time = f'{args.start_time}T00:00:00.000Z'
