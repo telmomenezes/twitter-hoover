@@ -1,5 +1,5 @@
 import tweepy
-from utils import retrieve_keys, build_search_query, save_to_json
+from hoover.anon.utils import retrieve_keys, build_search_query, save_to_json
 import argparse
 import logging
 
@@ -17,7 +17,7 @@ def get_args_from_command_line():
                         help="Whether to get count for the full archive or the recent tweets. Two possibles values are 'full_archive' or 'recent'.")
     parser.add_argument("--lang", type=str,
                         help="Language of the tweets to be collected. If not provided, will collect tweets matching the query in all languages.")
-    parser.add_argument("--perimeter_name", type=str)
+    parser.add_argument("--keywords_path", type=str)
     parser.add_argument("--start_time", type=str, help="For full archive count, when to start the count. Format is YYYY-MM-DD")
     parser.add_argument("--outfile", type=str, help="Path to the json file where the output will be stored")
 
@@ -32,7 +32,7 @@ def main():
                            consumer_secret=consumer_secret,
                            bearer_token=bearer_token,
                            wait_on_rate_limit=True)
-    query = build_search_query(perimeter_name=args.perimeter_name, lang=args.lang)
+    query = build_search_query_keywords(keywords_path=keywords_path, lang=args.lang)
     logger.info(f'Search query: {query}')
     if args.count_method == 'full_archive':
         start_time = f'{args.start_time}T00:00:00.000Z'

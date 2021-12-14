@@ -1,5 +1,5 @@
 import tweepy
-from utils import retrieve_keys, build_search_query, save_to_json
+from hoover.anon.utils import retrieve_keys, build_search_query_keywords, build_search_query_users, save_to_json
 import argparse
 import logging
 import time
@@ -7,7 +7,7 @@ import os
 import ast
 import pandas as pd
 from tenacity import retry, wait_fixed
-from anonymize_v1 import clean_anonymize_line_dict, anonymize, anonymize_text
+from hoover.anon.anonymize_v1 import clean_anonymize_line_dict, anonymize, anonymize_text
 
 logging.basicConfig(format='%(asctime)s - %(levelname)s - %(name)s -   %(message)s',
                     datefmt='%m/%d/%Y %H:%M:%S',
@@ -23,7 +23,7 @@ def get_args_from_command_line():
                         help="Whether to search the full archive or the recent tweets. Two possibles values are 'full_archive' or 'recent'.")
     parser.add_argument("--lang", type=str,
                         help="Language of the tweets to be collected. If not provided, will collect tweets matching the query in all languages.")
-    parser.add_argument("--keywords_path", type=str)
+    parser.add_argument("--keywords_path", type=str, default=None)
     parser.add_argument("--start_time", type=str,
                         help="For full archive collection, when to start the collection. Format is YYYY-MM-DD")
     parser.add_argument("--outfile", type=str, help="Path to the json file where the output will be stored")
