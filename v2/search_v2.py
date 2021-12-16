@@ -1,5 +1,5 @@
 import tweepy
-from hoover.anon.utils import retrieve_keys, build_search_query_keywords, build_search_query_users, save_to_json
+from hoover.anon.utils import retrieve_keys, build_search_query_keywords, save_to_json
 import argparse
 import logging
 import time
@@ -164,7 +164,7 @@ def main():
                            consumer_secret=consumer_secret,
                            bearer_token=bearer_token,
                            wait_on_rate_limit=True)
-    query = build_search_query(keywords_path=args.keywords_path, lang=args.lang)
+    query = build_search_query_keywords(keywords_path=args.keywords_path, lang=args.lang)
     logger.info(f'Search query: {query}')
     search_arguments_dict = {'query': query,
                              'expansions': ['author_id', 'in_reply_to_user_id',
