@@ -349,11 +349,11 @@ if __name__ == '__main__':
                         with gzip.open(path_to_encrypt, 'rt') as f:
                             with gzip.open(path_to_encrypted, 'wt') as out:
                                 for line in f:
-                                    logger.info(line)
+                                    logger.info(f'Raw line: {line}')
                                     clean_line_split = clean_line(line=line)
                                     for cleaned_line in clean_line_split:
                                         count_tweet += 1
-                                        logger.info(cleaned_line)
+                                        logger.info(f'Cleaned line: {cleaned_line}')
                                         line_dict = ast.literal_eval(cleaned_line)
                                         if not 'anon' in line_dict.keys():
                                             output_dict = clean_anonymize_line_dict(line_dict=line_dict, anon_dict=anon_dict)
