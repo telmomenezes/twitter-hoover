@@ -251,11 +251,6 @@ def clean_anonymize_line_dict(line_dict, anon_dict):
     return output_dict
 
 def clean_line(line):
-    if r'\N' in fr'{line}':
-        # logger.info('Found backslash capital n, replacing it.')
-        # logger.info(fr'Line before replacement: {line}')
-        line = fr'{line}'.replace(r'\N', '\ N')
-        # logger.info(fr'Line after replacement: {line}')
     line = line.replace('false', 'False').replace('true', 'True').replace('null', 'None').replace('\n', '')
     line_split = line.split('"source":')
     final_list = list()
@@ -267,6 +262,11 @@ def clean_line(line):
     clean_line = ''.join(final_list)
     if not isascii(clean_line):
         clean_line = clean_line.encode("ascii", "ignore").decode()
+    if r'\N' in fr'{clean_line}':
+        # logger.info('Found backslash capital n, replacing it.')
+        # logger.info(fr'Line before replacement: {line}')
+        clean_line = fr'{clean_line}'.replace(r'\N', '\ N')
+        # logger.info(fr'Line after replacement: {line}')
     if '}{"created_at"' in clean_line:
         clean_line_split = clean_line.split('}{"created_at"')
         clean_line_split[0] = f'{clean_line_split[0]}' + '}'
@@ -349,11 +349,11 @@ if __name__ == '__main__':
                         with gzip.open(path_to_encrypt, 'rt') as f:
                             with gzip.open(path_to_encrypted, 'wt') as out:
                                 for line in f:
-                                    logger.info(f'Raw line: {line}')
+                                    # logger.info(f'Raw line: {line}')
                                     clean_line_split = clean_line(line=line)
                                     for cleaned_line in clean_line_split:
                                         count_tweet += 1
-                                        logger.info(f'Cleaned line: {cleaned_line}')
+                                        # logger.info(f'Cleaned line: {cleaned_line}')
                                         line_dict = ast.literal_eval(cleaned_line)
                                         if not 'anon' in line_dict.keys():
                                             output_dict = clean_anonymize_line_dict(line_dict=line_dict, anon_dict=anon_dict)
