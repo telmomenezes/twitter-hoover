@@ -21,7 +21,7 @@ import pickle
 import time
 import shutil
 
-logging.basicConfig(filename='/home/data/socsemics/code/twitter-hoover/hoover/anon/logs/eu19.log',
+logging.basicConfig(filename='/home/data/socsemics/code/twitter-hoover/hoover/anon/logs/eu19.txt',
                             filemode='a',
                     format='%(asctime)s - %(levelname)s - %(name)s -   %(message)s',
                     datefmt='%m/%d/%Y %H:%M:%S',
@@ -349,6 +349,7 @@ if __name__ == '__main__':
                         with gzip.open(path_to_encrypt, 'rt') as f:
                             with gzip.open(path_to_encrypted, 'wt') as out:
                                 for line in f:
+                                    logger.info(line)
                                     clean_line_split = clean_line(line=line)
                                     for cleaned_line in clean_line_split:
                                         count_tweet += 1
