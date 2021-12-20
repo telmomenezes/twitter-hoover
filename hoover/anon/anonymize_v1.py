@@ -21,9 +21,9 @@ import pickle
 import time
 import shutil
 
-# logging.basicConfig(filename='/home/data/socsemics/code/twitter-hoover/hoover/anon/logs/eu19.log',
-#                             filemode='a',
-logging.basicConfig(format='%(asctime)s - %(levelname)s - %(name)s -   %(message)s',
+logging.basicConfig(filename='/home/data/socsemics/code/twitter-hoover/hoover/anon/logs/eu19.log',
+                            filemode='a',
+                    format='%(asctime)s - %(levelname)s - %(name)s -   %(message)s',
                     datefmt='%m/%d/%Y %H:%M:%S',
                     level=logging.INFO)
 logger = logging.getLogger(__name__)
