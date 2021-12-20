@@ -251,6 +251,8 @@ def clean_anonymize_line_dict(line_dict, anon_dict):
     return output_dict
 
 def clean_line(line):
+    if r'\N' in fr'{line}':
+        line = fr'{line}'.replace(r'\N', '\\N')
     line = line.replace('false', 'False').replace('true', 'True').replace('null', 'None').replace('\n', '')
     line_split = line.split('"source":')
     final_list = list()
