@@ -309,12 +309,14 @@ def keep_all_but_most_recent_folder(paths_to_encrypt_list):
     path_list = [path for path in paths_to_encrypt_list]
     filename_list = [path.name.split('.')[0] for path in path_list]
     if len(filename_list) > 1:
+        logger.info('Data collected on more than one month')
         filename_dict = dict()
         for filename in filename_list:
             filename_dict[filename] = pd.to_datetime(filename, format='%Y-%m')
         most_recent_foldername = max(filename_dict, key=filename_dict.get)
         return [path for path in path_list if most_recent_foldername not in path], most_recent_foldername
     elif len(filename_list) == 1:
+        logger.info('Data collected on only one month')
         return [], filename_list[0]
 
 if __name__ == '__main__':
