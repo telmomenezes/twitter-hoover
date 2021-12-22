@@ -359,7 +359,8 @@ if __name__ == '__main__':
                     if args.all_but_most_recent == 1:
                         paths_to_encrypt_list, most_recent_foldername = keep_all_but_most_recent_folder(paths_to_encrypt_list=paths_to_encrypt_list)
                         logger.info(f'Dropping {most_recent_foldername}')
-                        save_to_json({user_folder: f'{most_recent_foldername}.json.gz'}, f"{args.input_path}_encrypted/not_anon_files.json" )
+                        username_to_most_recent_folder_dict = {user_folder: f'{most_recent_foldername}.json.gz'}
+                        save_to_json(username_to_most_recent_folder_dict, f"{args.input_path}_encrypted/not_anon_files.json" )
                     for path_to_encrypt in paths_to_encrypt_list:
                         logger.info(f'Encrypting {path_to_encrypt}')
                         path_to_encrypted = use_input_path_to_define_output(input_path=path_to_encrypt, output_folder=f'{args.input_path}_encrypted/{anon_user_folder}')
