@@ -333,7 +333,8 @@ if __name__ == '__main__':
     if args.resume == 1:
         already_anon_list = get_list_of_already_anon_users(log_path=f"{args.input_path}_encrypted/already_anon.log")
     else:
-        open(f"{args.input_path}_encrypted/already_anon.log", 'w').close()
+        with open(f"{args.input_path}_encrypted/already_anon.log", 'w') as fp:
+            pass
         already_anon_list = list()
     start_time = time.time()
     try:
