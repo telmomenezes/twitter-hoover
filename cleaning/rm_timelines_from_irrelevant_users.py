@@ -30,8 +30,9 @@ if __name__ == '__main__':
     print(len(perimeter_list))
     print(len(list(dict.fromkeys(perimeter_list))))
     not_captured_list = [user_id for user_id in perimeter_list if user_id not in os.listdir(path_timelines)]
-    for user_id in not_captured_list:
-        print(user_id)
+    print(len(not_captured_list))
+    # for user_id in not_captured_list:
+    #     print(user_id)
     # print([user_id for user_id in perimeter_list if user_id not in os.listdir(path_timelines)])
     # for user_id in os.listdir(path_timelines):
     #     user_id = str(user_id)
