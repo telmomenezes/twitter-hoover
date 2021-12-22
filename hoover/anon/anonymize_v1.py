@@ -306,14 +306,14 @@ def save_id_of_anon_user(log_path, anon_id):
         print(f'{anon_id}\n', file=text_file)
 
 def keep_all_but_most_recent_folder(paths_to_encrypt_list):
-    backup_path_list = paths_to_encrypt_list
-    filename_list = [path.name.split('.')[0] for path in paths_to_encrypt_list]
+    path_list = [path for path in paths_to_encrypt_list]
+    filename_list = [path.name.split('.')[0] for path in path_list]
     if len(filename_list) > 1:
         filename_dict = dict()
         for filename in filename_list:
             filename_dict[filename] = pd.to_datetime(filename, format='%Y-%m')
         most_recent_foldername = max(filename_dict, key=filename_dict.get)
-        return [path for path in backup_path_list if most_recent_foldername not in path], most_recent_foldername
+        return [path for path in path_list if most_recent_foldername not in path], most_recent_foldername
     elif len(filename_list) == 1:
         return [], filename_list[0]
 
