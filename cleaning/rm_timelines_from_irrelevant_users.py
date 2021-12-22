@@ -18,6 +18,7 @@ def get_args_from_command_line():
     return args
 
 if __name__ == '__main__':
+    args = get_args_from_command_line()
     path_data = '/home/mtonneau/twitter/data'
     path_perimeter = os.path.join(path_data, args.perimeter, 'perimeter', 'perimeter.csv')
     path_timelines = os.path.join(path_data, args.perimeter, 'timelines')
