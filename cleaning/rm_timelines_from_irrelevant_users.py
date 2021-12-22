@@ -3,6 +3,7 @@ import argparse
 import logging
 import os
 from pathlib import Path
+import shutil
 
 logging.basicConfig(format='%(asctime)s - %(levelname)s - %(name)s -   %(message)s',
                     datefmt='%m/%d/%Y %H:%M:%S',
@@ -22,10 +23,13 @@ if __name__ == '__main__':
     path_data = '/home/mtonneau/twitter/data'
     path_perimeter = os.path.join(path_data, args.perimeter, 'perimeter', 'perimeter.csv')
     path_timelines = os.path.join(path_data, args.perimeter, 'timelines')
+    output_path = os.path.join(path_data, args.perimeter, 'timelines_users_left_out')
     perimeter_df = pd.read_csv(path_perimeter)
     perimeter_df['user_id'] = perimeter_df['user_id'].astype(str)
     perimeter_list = perimeter_df['user_id'].tolist()
-    for path in os.listdir(path_timelines):
-        path = str(path)
-        print(path)
+    for user_id in os.listdir(path_timelines):
+        user_id = str(user_id)
+        if user_id not in perimeter_list:
+            shutil.move(os.path.join(path_timelines, user_id), output_path)
+
 
