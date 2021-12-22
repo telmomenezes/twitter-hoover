@@ -7,7 +7,8 @@ import os
 import logging
 from hoover.anon.utils import load_key_to_decrypt_anon, decrypt_anon, kept_anonymized_tweet_objects_list, \
     kept_tweet_objects_list, removed_tweet_objects_list, kept_anonymized_user_objects_list, kept_user_objects_list, \
-    removed_user_objects_list, kept_anonymized_entities_dict, kept_entities_list, removed_entities_list, determine_id_type
+    removed_user_objects_list, kept_anonymized_entities_dict, kept_entities_list, removed_entities_list, determine_id_type \
+    save_to_json
 import base64
 import ast
 import re
@@ -21,8 +22,8 @@ import pickle
 import time
 import shutil
 
-logging.basicConfig(filename='/home/data/socsemics/code/twitter-hoover/hoover/anon/logs/eu19.txt',
-                            filemode='a',
+logging.basicConfig(filename=f'/home/data/socsemics/code/twitter-hoover/hoover/anon/logs/{int(time.time())}.txt',
+                    filemode='a',
                     format='%(asctime)s - %(levelname)s - %(name)s -   %(message)s',
                     datefmt='%m/%d/%Y %H:%M:%S',
                     level=logging.INFO)
@@ -36,8 +37,8 @@ def get_args_from_command_line():
     parser.add_argument("--anon_db_folder_path", type=str, help="Path to anon DB.", default='/home/socsemics/anon')
     # parser.add_argument("--compressed", type=str, help="Whether the files are compressed or not.")
     parser.add_argument("--data_type", type=str, help="Type of collected data.")
-    parser.add_argument("--resume", type=int, help="Whether to resume or not")
-
+    parser.add_argument("--resume", type=int, help="Whether to resume or not", default=0)
+    parser.add_argument("--all_but_most_recent", type=int, help="Whether to anon the most recent json.gz or not", default=0)
     args = parser.parse_args()
     return args
 
@@ -304,6 +305,15 @@ def save_id_of_anon_user(log_path, anon_id):
     with open(log_path, "a") as text_file:
         print(f'{anon_id}\n', file=text_file)
 
+def keep_all_but_most_recent_folder(paths_to_encrypt_list):
+    backup_path_list = paths_to_encrypt_list
+    filename_list = [path.name.split('.')[0] for path in paths_to_encrypt_list]
+    filename_dict = dict()
+    for filename in filename_list:
+        filename_dict[filename] = pd.to_datetime(filename, format='%Y-%m')
+    most_recent_foldername = max(filename_dict, key=filename_dict.get)
+    return [path for path in backup_path_list if most_recent_foldername not in path], most_recent_foldername
+
 if __name__ == '__main__':
     args = get_args_from_command_line()
     anon_path = os.path.join(args.anon_db_folder_path, 'anon-DB.pickle')
@@ -343,6 +353,10 @@ if __name__ == '__main__':
                     else:
                         os.makedirs(f'{args.input_path}_encrypted/{anon_user_folder}')
                     count_tweet = 0
+                    if args.all_but_most_recent == 1:
+                        paths_to_encrypt_list, most_recent_foldername = keep_all_but_most_recent_folder(paths_to_encrypt_list=paths_to_encrypt_list)
+                        logger.info(f'Dropping {most_recent_foldername}')
+                        save_to_json({user_folder: f'{most_recent_foldername}.json.gz'}, f"{args.input_path}_encrypted/not_anon_files.json" )
                     for path_to_encrypt in paths_to_encrypt_list:
                         logger.info(f'Encrypting {path_to_encrypt}')
                         path_to_encrypted = use_input_path_to_define_output(input_path=path_to_encrypt, output_folder=f'{args.input_path}_encrypted/{anon_user_folder}')
