@@ -27,6 +27,8 @@ if __name__ == '__main__':
     perimeter_df = pd.read_csv(path_perimeter)
     perimeter_df['user_id'] = perimeter_df['user_id'].astype(str)
     perimeter_list = perimeter_df['user_id'].tolist()
+    print(len(perimeter_list))
+    print(len(list(dict.fromkeys(perimeter_list))))
     for user_id in os.listdir(path_timelines):
         user_id = str(user_id)
         if user_id not in perimeter_list:
