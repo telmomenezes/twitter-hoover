@@ -29,7 +29,10 @@ if __name__ == '__main__':
     perimeter_list = perimeter_df['user_id'].tolist()
     print(len(perimeter_list))
     print(len(list(dict.fromkeys(perimeter_list))))
-    print([user_id for user_id in perimeter_list if user_id not in os.listdir(path_timelines)])
+    not_captured_list = [user_id for user_id in perimeter_list if user_id not in os.listdir(path_timelines)]
+    for user_id in not_captured_list:
+        print(user_id)
+    # print([user_id for user_id in perimeter_list if user_id not in os.listdir(path_timelines)])
     # for user_id in os.listdir(path_timelines):
     #     user_id = str(user_id)
     #     if user_id not in perimeter_list:
