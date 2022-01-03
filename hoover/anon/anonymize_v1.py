@@ -7,7 +7,8 @@ import os
 import logging
 from hoover.anon.utils import load_key_to_decrypt_anon, decrypt_anon, kept_anonymized_tweet_objects_list, \
     kept_tweet_objects_list, removed_tweet_objects_list, kept_anonymized_user_objects_list, kept_user_objects_list, \
-    removed_user_objects_list, kept_anonymized_entities_dict, kept_entities_list, removed_entities_list, determine_id_type, \
+    removed_user_objects_list, kept_anonymized_entities_dict, kept_entities_list, removed_entities_list, \
+    determine_id_type, \
     save_to_json
 import base64
 import ast
@@ -38,7 +39,7 @@ def get_args_from_command_line():
     # parser.add_argument("--compressed", type=str, help="Whether the files are compressed or not.")
     parser.add_argument("--data_type", type=str, help="Type of collected data.")
     parser.add_argument("--resume", type=int, help="Whether to resume or not", default=0)
-    parser.add_argument("--all_but_most_recent", type=int, help="Whether to anon the most recent json.gz or not", default=0)
+    parser.add_argument("--most_recent", type=str, default='all')
     args = parser.parse_args()
     return args
 
@@ -59,11 +60,13 @@ def hash_encode(id):
     except:
         return None
 
+
 def aes_siv_encrypt(key, data):
     key = b64decode(key)
     cipher = AES.new(key, AES.MODE_SIV)
     ciphertext, tag = cipher.encrypt_and_digest(data)
-    return [ b64encode(x).decode('utf-8') for x in [ciphertext, tag] ]
+    return [b64encode(x).decode('utf-8') for x in [ciphertext, tag]]
+
 
 def isascii(s):
     try:
@@ -135,7 +138,8 @@ def clean_anonymize_retweeted_status(line_dict, output_dict, anon_dict):
     for key in line_dict['retweeted_status'].keys():
         if key == 'user':
             output_dict['retweeted_status'] = clean_anonymize_user(line_dict=line_dict['retweeted_status'],
-                                                                   output_dict=output_dict['retweeted_status'], anon_dict=anon_dict)
+                                                                   output_dict=output_dict['retweeted_status'],
+                                                                   anon_dict=anon_dict)
         elif key == 'url':
             if line_dict['retweeted_status'][key]:
                 output_dict['retweeted_status'][key] = anonymize(data_dict=line_dict['retweeted_status'],
@@ -152,27 +156,30 @@ def clean_anonymize_retweeted_status(line_dict, output_dict, anon_dict):
             output_dict['retweeted_status'][key] = line_dict['retweeted_status'][key]
     return output_dict
 
+
 def clean_anonymize_quoted_status(line_dict, output_dict, anon_dict):
     output_dict['quoted_status'] = dict()
     for key in line_dict['quoted_status'].keys():
         if key == 'user':
             output_dict['quoted_status'] = clean_anonymize_user(line_dict=line_dict['quoted_status'],
-                                                                   output_dict=output_dict['quoted_status'], anon_dict=anon_dict)
+                                                                output_dict=output_dict['quoted_status'],
+                                                                anon_dict=anon_dict)
         elif key == 'url':
             if line_dict['quoted_status'][key]:
                 output_dict['quoted_status'][key] = anonymize(data_dict=line_dict['quoted_status'],
-                                                                 dict_key=key, object_type='urls', anon_dict=anon_dict)
+                                                              dict_key=key, object_type='urls', anon_dict=anon_dict)
             else:
                 output_dict['quoted_status'][key] = line_dict['quoted_status'][key]
         elif key in kept_anonymized_tweet_objects_list:
             if line_dict['quoted_status'][key]:
                 output_dict['quoted_status'][key] = anonymize(data_dict=line_dict['quoted_status'],
-                                                                 dict_key=key, object_type='tweet', anon_dict=anon_dict)
+                                                              dict_key=key, object_type='tweet', anon_dict=anon_dict)
             else:
                 output_dict['quoted_status'][key] = line_dict['quoted_status'][key]
         elif key in kept_tweet_objects_list:
             output_dict['quoted_status'][key] = line_dict['quoted_status'][key]
     return output_dict
+
 
 def clean_anonymize_entities(line_dict, output_dict, anon_dict):
     output_dict['entities'] = dict()
@@ -181,16 +188,18 @@ def clean_anonymize_entities(line_dict, output_dict, anon_dict):
             user_mentions_list = list()
             for user_dict in line_dict['entities']['user_mentions']:
                 anonymized_user_dict = dict()
-                anonymized_user_dict['screen_name'] = anonymize(data_dict=user_dict, dict_key='screen_name', object_type='user', anon_dict=anon_dict)
-                anonymized_user_dict['id_str'] = anonymize(data_dict=user_dict, dict_key='id_str',
+                anonymized_user_dict['screen_name'] = anonymize(data_dict=user_dict, dict_key='screen_name',
                                                                 object_type='user', anon_dict=anon_dict)
+                anonymized_user_dict['id_str'] = anonymize(data_dict=user_dict, dict_key='id_str',
+                                                           object_type='user', anon_dict=anon_dict)
                 user_mentions_list.append(anonymized_user_dict)
             output_dict['entities']['user_mentions'] = user_mentions_list
         elif key == 'urls':
             urls_list = list()
             for url_dict in line_dict['entities']['urls']:
                 anonymized_url_dict = dict()
-                anonymized_url_dict['url'] = anonymize(data_dict=url_dict, dict_key='url', object_type='urls', anon_dict=anon_dict)
+                anonymized_url_dict['url'] = anonymize(data_dict=url_dict, dict_key='url', object_type='urls',
+                                                       anon_dict=anon_dict)
                 anonymized_url_dict['expanded_url'] = anonymize(data_dict=url_dict, dict_key='expanded_url',
                                                                 object_type='urls', anon_dict=anon_dict)
                 urls_list.append(anonymized_url_dict)
@@ -198,6 +207,7 @@ def clean_anonymize_entities(line_dict, output_dict, anon_dict):
         elif key in kept_entities_list:
             output_dict['entities'][key] = line_dict['entities'][key]
     return output_dict
+
 
 def anonymize_text(text, anon_dict):
     screen_name_list = [i[1:] for i in text.split() if i.startswith('@')]
@@ -207,7 +217,8 @@ def anonymize_text(text, anon_dict):
     # build anonymized screen names and urls
     replace_dict = dict()
     for screen_name in screen_name_list:
-        replace_dict[screen_name] = anonymize(data_dict=screen_name, dict_key='screen_name', object_type='text', anon_dict=anon_dict)
+        replace_dict[screen_name] = anonymize(data_dict=screen_name, dict_key='screen_name', object_type='text',
+                                              anon_dict=anon_dict)
     for url in url_list:
         replace_dict[url] = anonymize(data_dict=url, dict_key='tweet_url', object_type='text', anon_dict=anon_dict)
     # replace screen names and urls in text with anonymized versions
@@ -216,6 +227,7 @@ def anonymize_text(text, anon_dict):
         if replace_dict[to_replace_str]:
             anonymized_text = anonymized_text.replace(to_replace_str, replace_dict[to_replace_str])
     return anonymized_text
+
 
 def clean_anonymize_text(line_dict, output_dict, anon_dict):
     if 'full_text' in line_dict.keys():
@@ -234,22 +246,26 @@ def clean_anonymize_line_dict(line_dict, anon_dict):
         if key == 'user':
             output_dict = clean_anonymize_user(line_dict=line_dict, output_dict=output_dict, anon_dict=anon_dict)
         elif key == 'retweeted_status':
-            output_dict = clean_anonymize_retweeted_status(line_dict=line_dict, output_dict=output_dict, anon_dict=anon_dict)
+            output_dict = clean_anonymize_retweeted_status(line_dict=line_dict, output_dict=output_dict,
+                                                           anon_dict=anon_dict)
         elif key == 'quoted_status':
-            output_dict = clean_anonymize_quoted_status(line_dict=line_dict, output_dict=output_dict, anon_dict=anon_dict)
+            output_dict = clean_anonymize_quoted_status(line_dict=line_dict, output_dict=output_dict,
+                                                        anon_dict=anon_dict)
         elif key in ['text', 'full_text']:
             output_dict = clean_anonymize_text(line_dict=line_dict, output_dict=output_dict, anon_dict=anon_dict)
         elif key == 'entities':
             output_dict = clean_anonymize_entities(line_dict=line_dict, output_dict=output_dict, anon_dict=anon_dict)
         elif key in kept_anonymized_tweet_objects_list:
             if line_dict[key]:
-                output_dict[key] = anonymize(data_dict=line_dict, dict_key=key, object_type='tweet', anon_dict=anon_dict)
+                output_dict[key] = anonymize(data_dict=line_dict, dict_key=key, object_type='tweet',
+                                             anon_dict=anon_dict)
             else:
                 output_dict[key] = line_dict[key]
         elif key in kept_tweet_objects_list:
             output_dict[key] = line_dict[key]
     output_dict['anon'] = 1
     return output_dict
+
 
 def clean_line(line):
     line = line.replace('false', 'False').replace('true', 'True').replace('null', 'None').replace('\n', '')
@@ -277,6 +293,7 @@ def clean_line(line):
     else:
         return [clean_line]
 
+
 def use_input_path_to_define_output(input_path, output_folder):
     filename = os.path.basename(input_path)
     return f'{output_folder}/{filename}'
@@ -293,6 +310,7 @@ def display_time(seconds, intervals, granularity=4):
             result.append("{} {}".format(value, name))
     return ', '.join(result[:granularity])
 
+
 def get_list_of_already_anon_users(log_path):
     with open(log_path) as file:
         lines = file.readlines()
@@ -301,9 +319,11 @@ def get_list_of_already_anon_users(log_path):
         user_id_list.append(line.replace('\n', ''))
     return user_id_list
 
+
 def save_id_of_anon_user(log_path, anon_id):
     with open(log_path, "a") as text_file:
         print(f'{anon_id}\n', file=text_file)
+
 
 def keep_all_but_most_recent_folder(paths_to_encrypt_list):
     path_list = [path for path in paths_to_encrypt_list]
@@ -318,6 +338,19 @@ def keep_all_but_most_recent_folder(paths_to_encrypt_list):
     elif len(filename_list) == 1:
         logger.info('Data collected on only one month')
         return [], filename_list[0]
+
+
+def keep_only_most_recent_folders(paths_to_encrypt_list, not_anon_file):
+    path_list = [path for path in paths_to_encrypt_list]
+    filename_list = [path.name.split('.')[0] for path in path_list]
+    filename_dict = dict()
+    for filename in filename_list:
+        filename_dict[filename] = pd.to_datetime(filename, format='%Y-%m')
+    former_most_recent = pd.to_datetime(not_anon_file.split('.')[0], format='%Y-%m')
+    final_dict = dict((k, v) for k, v in filename_dict.items() if v >= former_most_recent)
+    final_path_list = [path for path in path_list if any(s in path.name for s in final_dict.keys())]
+    return final_path_list
+
 
 if __name__ == '__main__':
     args = get_args_from_command_line()
@@ -342,6 +375,12 @@ if __name__ == '__main__':
     start_time = time.time()
     try:
         if args.data_type == 'timelines':
+            if args.most_recent == 'only':
+                not_anon_dict = dict()
+                with open(f"{args.input_path}_encrypted/not_anon_files.json") as not_anon_f:
+                    for line in not_anon_f:
+                        line_dict = ast.literal_eval(line)
+                        not_anon_dict = {**not_anon_dict, **line_dict}
             if not os.path.exists(f'{args.input_path}_encrypted'):
                 os.makedirs(f'{args.input_path}_encrypted', exist_ok=True)
             folder_list = os.listdir(args.input_path)
@@ -352,7 +391,8 @@ if __name__ == '__main__':
                     logger.info(f'Encrypting timeline from user {user_folder}')
                     start_user = time.time()
                     paths_to_encrypt_list = Path(os.path.join(args.input_path, user_folder)).glob('*.json.gz')
-                    anon_user_folder = anonymize(data_dict={'id_str': str(user_folder)}, dict_key='id_str', object_type='user', anon_dict=anon_dict)
+                    anon_user_folder = anonymize(data_dict={'id_str': str(user_folder)}, dict_key='id_str',
+                                                 object_type='user', anon_dict=anon_dict)
                     if os.path.exists(f'{args.input_path}_encrypted/{anon_user_folder}'):
                         logger.info(f'Output folder already exists. Deleting and recreating.')
                         shutil.rmtree(f'{args.input_path}_encrypted/{anon_user_folder}')
@@ -360,14 +400,22 @@ if __name__ == '__main__':
                     else:
                         os.makedirs(f'{args.input_path}_encrypted/{anon_user_folder}')
                     count_tweet = 0
-                    if args.all_but_most_recent == 1:
-                        paths_to_encrypt_list, most_recent_foldername = keep_all_but_most_recent_folder(paths_to_encrypt_list=paths_to_encrypt_list)
+                    if args.most_recent == 'not':
+                        paths_to_encrypt_list, most_recent_foldername = keep_all_but_most_recent_folder(
+                            paths_to_encrypt_list=paths_to_encrypt_list)
                         logger.info(f'Dropping {most_recent_foldername}')
                         username_to_most_recent_folder_dict = {user_folder: f'{most_recent_foldername}.json.gz'}
-                        save_to_json(username_to_most_recent_folder_dict, f"{args.input_path}_encrypted/not_anon_files.json" )
+                        save_to_json(username_to_most_recent_folder_dict,
+                                     f"{args.input_path}_encrypted/not_anon_files.json")
+                    elif args.most_recent == 'only':
+                        not_anon_file = not_anon_dict[user_folder]
+                        paths_to_encrypt_list = keep_only_most_recent_folders(
+                            paths_to_encrypt_list=paths_to_encrypt_list, not_anon_file=not_anon_file)
+                        logger.info(f'Encrypting only {paths_to_encrypt_list}')
                     for path_to_encrypt in paths_to_encrypt_list:
                         logger.info(f'Encrypting {path_to_encrypt}')
-                        path_to_encrypted = use_input_path_to_define_output(input_path=path_to_encrypt, output_folder=f'{args.input_path}_encrypted/{anon_user_folder}')
+                        path_to_encrypted = use_input_path_to_define_output(input_path=path_to_encrypt,
+                                                                            output_folder=f'{args.input_path}_encrypted/{anon_user_folder}')
                         with gzip.open(path_to_encrypt, 'rt') as f:
                             with gzip.open(path_to_encrypted, 'wt') as out:
                                 for line in f:
@@ -378,15 +426,18 @@ if __name__ == '__main__':
                                         # logger.info(f'Cleaned line: {cleaned_line}')
                                         line_dict = ast.literal_eval(cleaned_line)
                                         if not 'anon' in line_dict.keys():
-                                            output_dict = clean_anonymize_line_dict(line_dict=line_dict, anon_dict=anon_dict)
+                                            output_dict = clean_anonymize_line_dict(line_dict=line_dict,
+                                                                                    anon_dict=anon_dict)
                                             print(json.dumps(output_dict), file=out)
                     current_time = time.time()
-                    logger.info(f'Elapsed time for user {user_folder}: {display_time(seconds=current_time - start_user, intervals=intervals)}')
+                    logger.info(
+                        f'Elapsed time for user {user_folder}: {display_time(seconds=current_time - start_user, intervals=intervals)}')
                     logger.info(f'# anonymized tweets: {count_tweet}')
-                    if count_tweet>0:
-                        logger.info(f'Average anon time per tweet: {(current_time - start_user)/count_tweet}')
-                    logger.info(f'Elapsed time since launch: {display_time(seconds=current_time - start_time, intervals=intervals)}')
-                    total_count_tweet =+ count_tweet
+                    if count_tweet > 0:
+                        logger.info(f'Average anon time per tweet: {(current_time - start_user) / count_tweet}')
+                    logger.info(
+                        f'Elapsed time since launch: {display_time(seconds=current_time - start_time, intervals=intervals)}')
+                    total_count_tweet = + count_tweet
                     save_id_of_anon_user(log_path=f"{args.input_path}_encrypted/already_anon.log", anon_id=user_folder)
                     logger.info('*************************************')
                 else:
@@ -398,4 +449,3 @@ if __name__ == '__main__':
     except:
         logger.exception('Got exception on main handler')
         raise
-
