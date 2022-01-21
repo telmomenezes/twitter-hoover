@@ -357,10 +357,11 @@ def convert_dict_string_to_dict(cleaned_line):
     for line in [cleaned_line, modified_cleaned_line]:
         try:
             return ast.literal_eval(line)
+            break
         except:
             logger.exception('Got exception on main handler')
             pass
-    sys.exit()
+    logger.exception('Got exception on main handler')
 
 
 
