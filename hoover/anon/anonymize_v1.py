@@ -437,7 +437,7 @@ if __name__ == '__main__':
                                 for cleaned_line in clean_line_split:
                                     count_tweet += 1
                                     # logger.info(f'Cleaned line: {cleaned_line}')
-                                    if len(cleaned_line) > 1:
+                                    if len(cleaned_line) > 2:
                                         line_dict = convert_dict_string_to_dict(cleaned_line)
                                         if not 'anon' in line_dict.keys():
                                             output_dict = clean_anonymize_line_dict(line_dict=line_dict,
