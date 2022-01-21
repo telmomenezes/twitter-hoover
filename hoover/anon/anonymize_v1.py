@@ -22,6 +22,7 @@ from base64 import b64encode, b64decode
 import pickle
 import time
 import shutil
+import sys
 
 logging.basicConfig(filename=f'/home/data/socsemics/code/twitter-hoover/hoover/anon/logs/{int(time.time())}.txt',
                     filemode='a',
@@ -351,6 +352,17 @@ def keep_only_most_recent_folders(paths_to_encrypt_list, not_anon_file):
     final_path_list = [path for path in path_list if any(s in path.name for s in final_dict.keys())]
     return final_path_list
 
+def convert_dict_string_to_dict(cleaned_line):
+    modified_cleaned_line = cleaned_line + '}'
+    for line in [cleaned_line, modified_cleaned_line]:
+        try:
+            return ast.literal_eval(line)
+        except:
+            logger.exception('Got exception on main handler')
+            pass
+    sys.exit()
+
+
 
 if __name__ == '__main__':
     args = get_args_from_command_line()
@@ -373,79 +385,76 @@ if __name__ == '__main__':
         open(f"{args.input_path}_encrypted/already_anon.log", 'w').close()
         already_anon_list = list()
     start_time = time.time()
-    try:
-        if args.data_type == 'timelines':
-            if args.most_recent == 'only':
-                not_anon_dict = dict()
-                with open(f"{args.input_path}_encrypted/not_anon_files.json") as not_anon_f:
-                    for line in not_anon_f:
-                        line_dict = ast.literal_eval(line)
-                        not_anon_dict = {**not_anon_dict, **line_dict}
-            if not os.path.exists(f'{args.input_path}_encrypted'):
-                os.makedirs(f'{args.input_path}_encrypted', exist_ok=True)
-            folder_list = os.listdir(args.input_path)
-            total_count_tweet = 0
-            for count, user_folder in enumerate(folder_list):
-                if user_folder not in already_anon_list:
-                    logger.info(f'User #{count}/{len(folder_list)}')
-                    logger.info(f'Encrypting timeline from user {user_folder}')
-                    start_user = time.time()
-                    paths_to_encrypt_list = Path(os.path.join(args.input_path, user_folder)).glob('*.json.gz')
-                    anon_user_folder = anonymize(data_dict={'id_str': str(user_folder)}, dict_key='id_str',
-                                                 object_type='user', anon_dict=anon_dict)
-                    if os.path.exists(f'{args.input_path}_encrypted/{anon_user_folder}'):
-                        logger.info(f'Output folder already exists. Deleting and recreating.')
-                        shutil.rmtree(f'{args.input_path}_encrypted/{anon_user_folder}')
-                        os.makedirs(f'{args.input_path}_encrypted/{anon_user_folder}')
-                    else:
-                        os.makedirs(f'{args.input_path}_encrypted/{anon_user_folder}')
-                    count_tweet = 0
-                    if args.most_recent == 'not':
-                        paths_to_encrypt_list, most_recent_foldername = keep_all_but_most_recent_folder(
-                            paths_to_encrypt_list=paths_to_encrypt_list)
-                        logger.info(f'Dropping {most_recent_foldername}')
-                        username_to_most_recent_folder_dict = {user_folder: f'{most_recent_foldername}.json.gz'}
-                        save_to_json(username_to_most_recent_folder_dict,
-                                     f"{args.input_path}_encrypted/not_anon_files.json")
-                    elif args.most_recent == 'only':
-                        not_anon_file = not_anon_dict[user_folder]
-                        paths_to_encrypt_list = keep_only_most_recent_folders(
-                            paths_to_encrypt_list=paths_to_encrypt_list, not_anon_file=not_anon_file)
-                        logger.info(f'Encrypting only {paths_to_encrypt_list}')
-                    for path_to_encrypt in paths_to_encrypt_list:
-                        logger.info(f'Encrypting {path_to_encrypt}')
-                        path_to_encrypted = use_input_path_to_define_output(input_path=path_to_encrypt,
-                                                                            output_folder=f'{args.input_path}_encrypted/{anon_user_folder}')
-                        with gzip.open(path_to_encrypt, 'rt') as f:
-                            with gzip.open(path_to_encrypted, 'wt') as out:
-                                for line in f:
-                                    # logger.info(f'Raw line: {line}')
-                                    clean_line_split = clean_line(line=line)
-                                    for cleaned_line in clean_line_split:
-                                        count_tweet += 1
-                                        # logger.info(f'Cleaned line: {cleaned_line}')
-                                        line_dict = ast.literal_eval(cleaned_line)
-                                        if not 'anon' in line_dict.keys():
-                                            output_dict = clean_anonymize_line_dict(line_dict=line_dict,
-                                                                                    anon_dict=anon_dict)
-                                            print(json.dumps(output_dict), file=out)
-                    current_time = time.time()
-                    logger.info(
-                        f'Elapsed time for user {user_folder}: {display_time(seconds=current_time - start_user, intervals=intervals)}')
-                    logger.info(f'# anonymized tweets: {count_tweet}')
-                    if count_tweet > 0:
-                        logger.info(f'Average anon time per tweet: {(current_time - start_user) / count_tweet}')
-                    logger.info(
-                        f'Elapsed time since launch: {display_time(seconds=current_time - start_time, intervals=intervals)}')
-                    total_count_tweet = + count_tweet
-                    save_id_of_anon_user(log_path=f"{args.input_path}_encrypted/already_anon.log", anon_id=user_folder)
-                    logger.info('*************************************')
+    if args.data_type == 'timelines':
+        if args.most_recent == 'only':
+            not_anon_dict = dict()
+            with open(f"{args.input_path}_encrypted/not_anon_files.json") as not_anon_f:
+                for line in not_anon_f:
+                    line_dict = ast.literal_eval(line)
+                    not_anon_dict = {**not_anon_dict, **line_dict}
+        if not os.path.exists(f'{args.input_path}_encrypted'):
+            os.makedirs(f'{args.input_path}_encrypted', exist_ok=True)
+        folder_list = os.listdir(args.input_path)
+        total_count_tweet = 0
+        for count, user_folder in enumerate(folder_list):
+            if user_folder not in already_anon_list:
+                logger.info(f'User #{count}/{len(folder_list)}')
+                logger.info(f'Encrypting timeline from user {user_folder}')
+                start_user = time.time()
+                paths_to_encrypt_list = Path(os.path.join(args.input_path, user_folder)).glob('*.json.gz')
+                anon_user_folder = anonymize(data_dict={'id_str': str(user_folder)}, dict_key='id_str',
+                                             object_type='user', anon_dict=anon_dict)
+                if os.path.exists(f'{args.input_path}_encrypted/{anon_user_folder}'):
+                    logger.info(f'Output folder already exists. Deleting and recreating.')
+                    shutil.rmtree(f'{args.input_path}_encrypted/{anon_user_folder}')
+                    os.makedirs(f'{args.input_path}_encrypted/{anon_user_folder}')
                 else:
-                    logger.info(f'User {user_folder} already anonymized. Skipping')
-            end_time = time.time()
-            logger.info(f'Total duration: {display_time(seconds=end_time - start_time, intervals=intervals)}')
-            logger.info(f'Total # of anon tweets: {total_count_tweet}')
-            logger.info(f'# of users covered: {count}')
-    except:
-        logger.exception('Got exception on main handler')
-        raise
+                    os.makedirs(f'{args.input_path}_encrypted/{anon_user_folder}')
+                count_tweet = 0
+                if args.most_recent == 'not':
+                    paths_to_encrypt_list, most_recent_foldername = keep_all_but_most_recent_folder(
+                        paths_to_encrypt_list=paths_to_encrypt_list)
+                    logger.info(f'Dropping {most_recent_foldername}')
+                    username_to_most_recent_folder_dict = {user_folder: f'{most_recent_foldername}.json.gz'}
+                    save_to_json(username_to_most_recent_folder_dict,
+                                 f"{args.input_path}_encrypted/not_anon_files.json")
+                elif args.most_recent == 'only':
+                    not_anon_file = not_anon_dict[user_folder]
+                    paths_to_encrypt_list = keep_only_most_recent_folders(
+                        paths_to_encrypt_list=paths_to_encrypt_list, not_anon_file=not_anon_file)
+                    logger.info(f'Encrypting only {paths_to_encrypt_list}')
+                for path_to_encrypt in paths_to_encrypt_list:
+                    logger.info(f'Encrypting {path_to_encrypt}')
+                    path_to_encrypted = use_input_path_to_define_output(input_path=path_to_encrypt,
+                                                                        output_folder=f'{args.input_path}_encrypted/{anon_user_folder}')
+                    with gzip.open(path_to_encrypt, 'rt') as f:
+                        with gzip.open(path_to_encrypted, 'wt') as out:
+                            for line in f:
+                                # logger.info(f'Raw line: {line}')
+                                clean_line_split = clean_line(line=line)
+                                for cleaned_line in clean_line_split:
+                                    count_tweet += 1
+                                    # logger.info(f'Cleaned line: {cleaned_line}')
+                                    line_dict = convert_dict_string_to_dict(cleaned_line)
+                                    if not 'anon' in line_dict.keys():
+                                        output_dict = clean_anonymize_line_dict(line_dict=line_dict,
+                                                                                anon_dict=anon_dict)
+                                        print(json.dumps(output_dict), file=out)
+                current_time = time.time()
+                logger.info(
+                    f'Elapsed time for user {user_folder}: {display_time(seconds=current_time - start_user, intervals=intervals)}')
+                logger.info(f'# anonymized tweets: {count_tweet}')
+                if count_tweet > 0:
+                    logger.info(f'Average anon time per tweet: {(current_time - start_user) / count_tweet}')
+                logger.info(
+                    f'Elapsed time since launch: {display_time(seconds=current_time - start_time, intervals=intervals)}')
+                total_count_tweet = + count_tweet
+                save_id_of_anon_user(log_path=f"{args.input_path}_encrypted/already_anon.log", anon_id=user_folder)
+                logger.info('*************************************')
+            else:
+                logger.info(f'User {user_folder} already anonymized. Skipping')
+        end_time = time.time()
+        logger.info(f'Total duration: {display_time(seconds=end_time - start_time, intervals=intervals)}')
+        logger.info(f'Total # of anon tweets: {total_count_tweet}')
+        logger.info(f'# of users covered: {count}')
+
