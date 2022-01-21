@@ -99,6 +99,7 @@ class Timelines(RateControl):
             with open(os.path.join(self.anon_db_folder_path, 'anon-DB.pickle'), 'rb') as handle:
                 anon_dict = pickle.load(handle)
         for i, user_id in enumerate(self.user_ids):
+            original_user_id = user_id
             if self.anon == 1:
                 anon_user_id = anonymize(data_dict={'id_str': str(user_id)}, dict_key='id_str', object_type='user',
                                          anon_dict=anon_dict)
@@ -114,7 +115,7 @@ class Timelines(RateControl):
             finished = False
             while not finished:
                 self.pre_request()
-                timeline = self.get_timeline(user_id, max_id - 1)
+                timeline = self.get_timeline(original_user_id, max_id - 1)
                 if timeline:
                     print('{} tweets received'.format(str(len(timeline))))
                     time_elapsed = 0
