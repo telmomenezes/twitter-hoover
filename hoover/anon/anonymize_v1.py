@@ -359,9 +359,7 @@ def convert_dict_string_to_dict(cleaned_line):
             return ast.literal_eval(line)
             break
         except:
-            logger.exception('Got exception on main handler')
             pass
-    print(cleaned_line)
     logger.exception('Got exception on main handler')
 
 
@@ -387,6 +385,7 @@ if __name__ == '__main__':
         open(f"{args.input_path}_encrypted/already_anon.log", 'w').close()
         already_anon_list = list()
     start_time = time.time()
+    too_short_tweet_count = 0
     if args.data_type == 'timelines':
         if args.most_recent == 'only':
             not_anon_dict = dict()
@@ -443,6 +442,8 @@ if __name__ == '__main__':
                                             output_dict = clean_anonymize_line_dict(line_dict=line_dict,
                                                                                     anon_dict=anon_dict)
                                             print(json.dumps(output_dict), file=out)
+                                    else:
+                                        too_short_tweet_count += 1
                 current_time = time.time()
                 logger.info(
                     f'Elapsed time for user {user_folder}: {display_time(seconds=current_time - start_user, intervals=intervals)}')
@@ -451,6 +452,7 @@ if __name__ == '__main__':
                     logger.info(f'Average anon time per tweet: {(current_time - start_user) / count_tweet}')
                 logger.info(
                     f'Elapsed time since launch: {display_time(seconds=current_time - start_time, intervals=intervals)}')
+                logger.info(f'Number of non-processed strings (shorter than 2 characters): {too_short_tweet_count}')
                 total_count_tweet = + count_tweet
                 save_id_of_anon_user(log_path=f"{args.input_path}_encrypted/already_anon.log", anon_id=user_folder)
                 logger.info('*************************************')
