@@ -361,6 +361,7 @@ def convert_dict_string_to_dict(cleaned_line):
         except:
             logger.exception('Got exception on main handler')
             pass
+    print(cleaned_line)
     logger.exception('Got exception on main handler')
 
 
