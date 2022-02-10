@@ -438,10 +438,11 @@ if __name__ == '__main__':
                                     # logger.info(f'Cleaned line: {cleaned_line}')
                                     if len(cleaned_line) > 2:
                                         line_dict = convert_dict_string_to_dict(cleaned_line)
-                                        if not 'anon' in line_dict.keys():
-                                            output_dict = clean_anonymize_line_dict(line_dict=line_dict,
-                                                                                    anon_dict=anon_dict)
-                                            print(json.dumps(output_dict), file=out)
+                                        if line_dict:
+                                            if not 'anon' in line_dict.keys():
+                                                output_dict = clean_anonymize_line_dict(line_dict=line_dict,
+                                                                                        anon_dict=anon_dict)
+                                                print(json.dumps(output_dict), file=out)
                                     else:
                                         too_short_tweet_count += 1
                 current_time = time.time()
