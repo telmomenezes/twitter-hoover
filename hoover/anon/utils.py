@@ -97,8 +97,7 @@ def retrieve_keys(keys_folder_name):
 
 
 def retrieve_keywords(keywords_path):
-    # keywords_path = f'/home/mtonneau/twitter/data/{perimeter_name}/keywords'
-    keywords_file = open(os.path.join(keywords_path, 'keywords_list.txt'), 'r')
+    keywords_file = open(keywords_path, 'r')
     return keywords_file.read().splitlines()
 
 
@@ -112,7 +111,7 @@ def build_search_query_keywords(keywords_path, lang):
             query_str = f'{query_str}{keyword} OR '
         elif count == len(keywords_list) - 1:
             query_str = f'{query_str}{keyword})'
-    if lang:
+    if lang != 'all':
         query_str = f'{query_str} lang:{lang}'
     return query_str
 

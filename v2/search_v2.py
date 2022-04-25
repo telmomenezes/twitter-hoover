@@ -20,22 +20,26 @@ def get_args_from_command_line():
     parser = argparse.ArgumentParser()
     parser.add_argument("--keys_folder_name", type=str, help="Name of the folder where keys are stored")
     parser.add_argument("--search_method", type=str,
-                        help="Whether to search the full archive or the recent tweets. Two possibles values are 'full_archive' or 'recent'.")
+                        help="Whether to search the full archive or the recent tweets. Two possibles values are 'full_archive' or 'recent'.",
+                        default='full_archive')
     parser.add_argument("--lang", type=str,
                         help="Language of the tweets to be collected. If not provided, will collect tweets matching the query in all languages.")
-    parser.add_argument("--keywords_path", type=str, default=None)
+    parser.add_argument("--keywords_path", type=str, default=None,
+                        help='Path to the folder containing a keywords_list.txt file, with one keyword/hashtag per line')
     parser.add_argument("--start_time", type=str,
                         help="For full archive collection, when to start the collection. Format is YYYY-MM-DD")
+    parser.add_argument("--end_time", type=str,
+                        help="For full archive collection, when to end the collection. Format is YYYY-MM-DD", default=None)
     parser.add_argument("--outfile", type=str, help="Path to the json file where the output will be stored")
     parser.add_argument("--anonymize", type=int, help="Whether to directly anonymize the collected data")
-    parser.add_argument("--anon_db_folder_path", type=str, help="Path to anon DB.")
+    parser.add_argument("--anon_db_folder_path", type=str, help="Path to anon DB.", default='/home/socsemics/anon')
     args = parser.parse_args()
     return args
 
 
-def extract_and_save_data_from_response(response, outfile, anonymize, anon_db_folder_path):
+def extract_and_save_data_from_response(response, outfile, anonymize, anon_dict):
     """Extract data from response, save to outfile and return timestamp from the first collected tweet, if existing."""
-    month_str_list = list()
+    date_month_str_list = list()
     user_dict = dict()
     if response.includes and 'users' in response.includes.keys():
         for user_object in response.includes['users']:
@@ -48,12 +52,12 @@ def extract_and_save_data_from_response(response, outfile, anonymize, anon_db_fo
             if len(user_dict) > 0 and 'author_id' in results_dict.keys():
                 results_dict = {**results_dict, **user_dict[results_dict['author_id']]}
             if 'created_at' in results_dict.keys():
-                month_str_list.append(results_dict['created_at'][:7])
+                date_month_str_list.append(results_dict['created_at'][:10])
             if anonymize == 1:
-                results_dict = anonymize_v2(response=results_dict, anon_db_folder_path=anon_db_folder_path)
+                results_dict = anonymize_v2(response=results_dict, anon_dict=anon_dict)
             save_to_json(data_dict=results_dict, outfile=outfile)
-        if len(month_str_list) > 0:
-            return month_str_list[0]
+        if len(date_month_str_list) > 0:
+            return date_month_str_list[0]
         else:
             return None
     else:
@@ -87,46 +91,46 @@ def get_search_response(client, **search_arguments_dict):
         logger.info(f'Exception {e} raised. Waiting for 10 seconds')
         raise e
 
-def log_month_string_if_new(month_str, old_month_str):
+def log_date_month_string_if_new(date_month_str, old_date_month_str):
     """Log the month from which the tweets last collected are from, if different from the month from the last API response."""
-    if month_str:
-        if month_str != old_month_str:
-            logger.info(f'Collecting data from {month_str}')
-        return month_str
+    if date_month_str:
+        if date_month_str != old_date_month_str:
+            logger.info(f'Collecting data from {date_month_str}')
+        return date_month_str
     else:
-        return old_month_str
+        return old_date_month_str
 
-def anonymize_v2(response, anon_db_folder_path):
+def anonymize_v2(response, anon_dict):
     output_dict = dict()
     for key in response.keys():
         if key == 'text':
-            output_dict['text'] = anonymize_text(text=response['text'], anon_db_folder_path=anon_db_folder_path)
+            output_dict['text'] = anonymize_text(text=response['text'], anon_dict=anon_dict)
         elif key == 'id':
             output_dict['id'] = anonymize(data_dict=response, dict_key=key,
-                                                                  object_type='tweet', anon_db_folder_path=anon_db_folder_path)
+                                                                  object_type='tweet', anon_dict=anon_dict)
         elif key == 'author_id':
             output_dict['user_id'] = anonymize(data_dict=response, dict_key=key,
-                                                                  object_type='user', anon_db_folder_path=anon_db_folder_path)
+                                                                  object_type='user', anon_dict=anon_dict)
         elif key == 'in_reply_to_user_id':
             if len(response[key]) > 0:
                 output_dict[key] = anonymize(data_dict=response, dict_key=key,
-                                                                      object_type='tweet', anon_db_folder_path=anon_db_folder_path)
+                                                                      object_type='tweet', anon_dict=anon_dict)
             else:
                 output_dict[key] = ''
         elif key == 'username':
             output_dict['screen_name'] = anonymize(data_dict=response, dict_key=key,
                                                                object_type='user',
-                                                               anon_db_folder_path=anon_db_folder_path)
+                                                               anon_dict=anon_dict)
         elif key == 'description':
             if len(response[key]) > 0:
-                output_dict[key] = anonymize_text(text=response[key], anon_db_folder_path=anon_db_folder_path)
+                output_dict[key] = anonymize_text(text=response[key], anon_dict=anon_dict)
             else:
                 output_dict[key] = ''
         elif key == 'url':
             if len(response['url']) > 0:
                 output_dict[key] = anonymize(data_dict=response, dict_key=key,
                                                                    object_type='user',
-                                                                   anon_db_folder_path=anon_db_folder_path)
+                                                                   anon_dict=anon_dict)
             else:
                 output_dict[key] = ''
         elif key == 'entities':
@@ -135,10 +139,10 @@ def anonymize_v2(response, anon_db_folder_path):
             for mention_dict in response[key]['mentions']:
                 mention_dict['username'] = anonymize(data_dict=mention_dict, dict_key='username',
                                                                object_type='user',
-                                                               anon_db_folder_path=anon_db_folder_path)
+                                                               anon_dict=anon_dict)
                 mention_dict['id'] = anonymize(data_dict=mention_dict, dict_key='id',
                                                                object_type='user',
-                                                               anon_db_folder_path=anon_db_folder_path)
+                                                               anon_dict=anon_dict)
                 anonymized_mentions_list.append(mention_dict)
             output_dict[key]['mentions'] = anonymized_mentions_list
         elif key == 'referenced_tweets':
@@ -147,7 +151,7 @@ def anonymize_v2(response, anon_db_folder_path):
             for count, referenced_tweet_dict in enumerate(referenced_tweets_list):
                 referenced_tweet_dict['id'] = anonymize(data_dict=referenced_tweet_dict, dict_key='id',
                                                                object_type='tweet',
-                                                               anon_db_folder_path=anon_db_folder_path)
+                                                               anon_dict=anon_dict)
                 anonymized_referenced_tweets_list.append(referenced_tweet_dict)
             output_dict[key] = anonymized_referenced_tweets_list
         else:
@@ -159,6 +163,12 @@ def anonymize_v2(response, anon_db_folder_path):
 
 def main():
     args = get_args_from_command_line()
+    if args.anonymize == 1:
+        anon_path = os.path.join(args.anon_db_folder_path, 'anon-DB.pickle')
+        with open(anon_path, 'rb') as handle:
+            anon_dict = pickle.load(handle)
+    else:
+        anon_dict = dict()
     consumer_key, consumer_secret, bearer_token = retrieve_keys(keys_folder_name=args.keys_folder_name)
     client = tweepy.Client(consumer_key=consumer_key,
                            consumer_secret=consumer_secret,
@@ -171,28 +181,31 @@ def main():
                                             'entities.mentions.username',
                                             'referenced_tweets.id', ],
                              'tweet_fields': ['created_at'],
-                             'user_fields': ['username', 'public_metrics', 'location', 'url', 'description']}
+                             'user_fields': ['id', 'username', 'public_metrics', 'location', 'url', 'description']}
     if os.path.exists(args.outfile):
         logger.info('Output file already exists')
         search_arguments_dict['end_time'] = get_timestamp_last_collected_tweet(outfile=args.outfile)
     if args.search_method == 'full_archive':
         start_time = f'{args.start_time}T00:00:00.000Z'
         search_arguments_dict['start_time'] = start_time
-        old_month_str = None
+        if args.end_time != 'none':
+            end_time = f'{args.end_time}T00:00:00.000Z'
+            search_arguments_dict['end_time'] = end_time
+        old_date_month_str = None
         response = get_search_response(client, **search_arguments_dict)
 
-        month_str = extract_and_save_data_from_response(response=response, outfile=args.outfile, anonymize=args.anonymize, anon_db_folder_path=args.anon_db_folder_path)
-        old_month_str = log_month_string_if_new(month_str=month_str, old_month_str=old_month_str)
+        date_month_str = extract_and_save_data_from_response(response=response, outfile=args.outfile, anonymize=args.anonymize, anon_dict=anon_dict)
+        old_date_month_str = log_date_month_string_if_new(date_month_str=date_month_str, old_date_month_str=old_date_month_str)
         while 'next_token' in response.meta.keys():
             search_arguments_dict['next_token'] = response.meta['next_token']
             response = get_search_response(client, **search_arguments_dict)
-            month_str = extract_and_save_data_from_response(response=response, outfile=args.outfile, anonymize=args.anonymize, anon_db_folder_path=args.anon_db_folder_path)
-            old_month_str = log_month_string_if_new(month_str=month_str, old_month_str=old_month_str)
+            date_month_str = extract_and_save_data_from_response(response=response, outfile=args.outfile, anonymize=args.anonymize, anon_dict=anon_dict)
+            old_date_month_str = log_date_month_string_if_new(date_month_str=date_month_str, old_date_month_str=old_date_month_str)
             time.sleep(1)  # Full-archive has a 1 request / 1 second limit
     elif args.search_method == 'recent':
         for response in tweepy.Paginator(client.search_recent_tweets,
                                          **search_arguments_dict):
-            extract_and_save_data_from_response(response=response, outfile=args.outfile, anonymize=args.anonymize, anon_db_folder_path=args.anon_db_folder_path)
+            extract_and_save_data_from_response(response=response, outfile=args.outfile, anonymize=args.anonymize, anon_dict=anon_dict)
 
 
 if __name__ == '__main__':
