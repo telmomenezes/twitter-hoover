@@ -8,6 +8,7 @@ import ast
 import pandas as pd
 from tenacity import retry, wait_fixed
 from hoover.anon.anonymize_v1 import clean_anonymize_line_dict, anonymize, anonymize_text
+import pickle
 
 logging.basicConfig(format='%(asctime)s - %(levelname)s - %(name)s -   %(message)s',
                     datefmt='%m/%d/%Y %H:%M:%S',
