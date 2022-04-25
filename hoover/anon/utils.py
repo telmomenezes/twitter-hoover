@@ -3,7 +3,7 @@ import json
 import hashlib
 from cryptography.fernet import Fernet
 
-API_KEYS_PATH = '/home/mtonneau/twitter/data/keys'
+API_KEYS_PATH = '/home/socsemics/data/api_keys/twitter'
 
 # fields list for v1 cleaning and anonymization
 
