@@ -24,6 +24,7 @@ You can then `cd` into the created directory and use `pip` to install locally:
   * [Convert to .csv (csv)](#v1_csv)
   * [Simplify JSON (simplify)](#v1_json)
   * [Extract YouTube videos (youtube)](#v1_youtube)
+  * [Timeline anonymization](#v1_anonymization)
 
 <a name="twitter_v1"/>
 
@@ -156,3 +157,30 @@ This command extracts all the URLs corresponding to YouTube videos from a list o
 
 
 The output files is a .csv file with two columns: video URL and number of occurrences.
+
+<a name="v1_anonymization"/>
+
+### Timeline anonymization
+
+With the present tool, there is a possibility to anonymize user timelines when using the Twitter v1 API. This anonymization can be performed either during data collection or ex-post.
+During anonymization, some entries are dropped, others are anonymized and the rest is kept as is. For details on treatment for each entry, please refer to the `v1_tweet_object`, `v1_user_object` and `v1_entities_object` sheets of this [Google Sheets](https://docs.google.com/spreadsheets/d/11GGVrfr0OrrBFR5qSUE6Tv97l2ahYNj9flNdXabEcis/edit?usp=sharing). 
+
+
+To collect anonymized timelines, use the following command:
+
+`hoover --infile <users> --outdir <outdir> --anon 1 timelines`
+
+The default path of the database containing the encryption keys is set to `/home/socsemics/anon`. If the database is located somewhere else, run:
+
+`hoover --infile <users> --outdir <outdir> --anon 1 --anon_db_folder_path <path> timelines` 
+where `<path>` is the path where this encryption key database is located.
+
+To anonymize timelines that were previously collected, run:
+
+`python3 ../hoover/anon/anonymize_v1.py --input_path PATH_TO_TIMELINE_FOLDER_TO_ANONYMIZE`
+
+This script gives the possibility to resume an anonymization that may have crashed with the `--resume` parameter. For a detailed description of all parameters, please refer to the script.
+
+
+
+
