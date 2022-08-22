@@ -13,7 +13,13 @@ You can then `cd` into the created directory and use `pip` to install locally:
 
 `pip install -e .`
 
-## How to use
+## Table of contents
+
+[Use with Twitter v1 API](#twitter_v1)
+
+<a name="twitter_v1"/>
+
+## Use with Twitter v1 API
 
 ### Authorize the app (auth)
 
