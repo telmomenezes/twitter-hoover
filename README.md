@@ -24,7 +24,15 @@ You can then `cd` into the created directory and use `pip` to install locally:
   * [Convert to .csv (csv)](#v1_csv)
   * [Simplify JSON (simplify)](#v1_json)
   * [Extract YouTube videos (youtube)](#v1_youtube)
-  * [Timeline anonymization](#v1_anonymization)
+* [Use with Twitter v2 API](#twitter_v2)
+  * [Counts of tweets matching a query over time](#v2_counts)
+  * [Full-archive search](#v2_full_archive)
+* [Anonymization](#anonymization)
+  * [Timeline anonymization with Twitter API v1](#v1_anonymization)
+  * [Anonymization with Twitter API v2](#v2_anonymization)
+  * [Deanonymization](#deanonymization)
+
+
 
 <a name="twitter_v1"/>
 
@@ -158,9 +166,47 @@ This command extracts all the URLs corresponding to YouTube videos from a list o
 
 The output files is a .csv file with two columns: video URL and number of occurrences.
 
+<a name="twitter_v2"/>
+
+## Use with Twitter v2 API
+
+<a name="v2_counts"/>
+
+### Counts of tweets matching a query over time
+
+One feature of the Twitter API v2 is the ability to count the number of tweets matching a query over time. To compute such a count, run:
+
+`python3 ../v2/count.py --keys_folder_name <KEYS_FOLDER_NAME> --count_method <COUNT_METHOD> --lang <LANG> --keywords_path <KEYWORDS_PATH> --start_time <START_TIME> --outfile <OUTFILE>` 
+where:
+- `<KEYS_FOLDER_NAME>` refers to the folder name in the `twitter` folder of the `cmb-css/api_keys` repository. If you are not a member of the `cmb-css` community, you need to change the `API_KEYS_PATH` in `../hoover/anon/utils.py` and create a folder named `<KEYS_FOLDER_NAME>`. In this folder, you should then create a txt file named `key-secret-token.txt` in which you will write on separate lines the consumer key, consumer secret key and bearer token.
+- `<COUNT_METHOD>` indicates whether to get counts for the full archive or recent tweets. Two possible values are `full_archive` or `recent`. 
+- `<LANG>` indicates the language code (e.g. `en` for English) of the tweets to be counted. If not provided, will count tweets matching the query in all languages.
+- `<KEYWORDS_PATH>` indicates the path where the keywords of interest are stored. This should be a `txt` file with one keyword per line.
+- `<START_TIME>` indicates when to start counting if doing a full archive count. Format is YYYY-MM-DD
+- `<OUTFILE>` indicates where to store the count data. This should point to a `json` file. 
+
+<a name="v2_full_archive"/>
+
+### Full-archive search
+
+A new feature from the academic version of Twitter API v2 is the ability to collect all tweets matching a query since the beginning of Twitter. Note that this collection method is limited to 10M tweets/month for academic accounts.
+
+To run a full-archive collection, run:
+
+`sh ../v2/search_v2.sh <KEYS_FOLDER_NAME> <KEYWORDS_PATH> <LANG> <START_TIME> <END_TIME> <OUTFILE> <ANONYMIZE>`
+where:
+- `<END_TIME>` indicates when to end the collection. Combined with `<START_TIME>`, it defines a time interval of interest. If no value is provided, the end time is defaulted to the time when the collection was launched.
+- `<ANONYMIZE>` indicates whether to anonymize the data. `1` means anonymization and `0` means no anonymization
+
+The other variables (`<KEYS_FOLDER_NAME>`, `<KEYWORDS_PATH>`, `<LANG>`, `<START_TIME>` and `<OUTFILE>`) have the same definition as in [the previous part](#v2_counts).
+
+<a name="anonymization"/>
+
+## Anonymization
+
 <a name="v1_anonymization"/>
 
-### Timeline anonymization
+### Timeline anonymization with Twitter API v1
 
 With the present tool, there is a possibility to anonymize user timelines when using the Twitter v1 API. This anonymization can be performed either during data collection or ex-post.
 During anonymization, some entries are dropped, others are anonymized and the rest is kept as is. For details on treatment for each entry, please refer to the `v1_tweet_object`, `v1_user_object` and `v1_entities_object` sheets of this [Google Sheets](https://docs.google.com/spreadsheets/d/11GGVrfr0OrrBFR5qSUE6Tv97l2ahYNj9flNdXabEcis/edit?usp=sharing). 
@@ -181,6 +227,30 @@ To anonymize timelines that were previously collected, run:
 
 This script gives the possibility to resume an anonymization that may have crashed with the `--resume` parameter. For a detailed description of all parameters, please refer to the script.
 
+<a name="v2_anonymization"/>
+
+### Anonymization with Twitter API v2
+
+Anonymization in the full-archive search is made possible by the `<ANONYMIZE>` argument, as described in the [relevant part](#v2_full_archive). 
 
 
+<a name="deanonymization"/>
+
+### Deanonymization
+
+For the purpose of a study, it may be necessary to deanonymize some IDs. 
+
+To deanonymize a unique ID, run: 
+`python3 ../hoover/anon/decrypt_indiv.py --anonymized_id <ANONYMIZED_ID> --anon_db_folder_path <ANON_DB_FOLDER_PATH>`
+where:
+- `<ANONYMIZED_ID>` is the ID to deanonymize
+- `<ANON_DB_FOLDER_PATH>` is the path to the anonymization database described in the [v1 anonymization module](#v1_anonymization)
+
+The deanonymized ID will then be logged in the terminal window.
+
+To deanonymize a group of IDs, run:
+`python3 ../hoover/anon/decrypt.py --input_path <INPUT_PATH> --anon_db_folder_path <ANON_DB_FOLDER_PATH>`
+where `<INPUT_PATH>` is the path to the CSV where the anonymized IDs to deanonymize are stored. This should be a CSV with one column named `anonymized_id` and containing the anonymized IDs of interest. The definition of `<ANON_DB_FOLDER_PATH>` is the same as above.
+
+The output of this script will be stored at `<INPUT_PATH>_deanonymized.csv`. 
 
