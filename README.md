@@ -208,7 +208,7 @@ The other variables (`<KEYS_FOLDER_NAME>`, `<KEYWORDS_PATH>`, `<LANG>`, `<START_
 
 ### Timeline anonymization with Twitter API v1
 
-With the present tool, there is a possibility to anonymize user timelines when using the Twitter v1 API. This anonymization can be performed either during data collection or ex-post.
+With the present tool, there is a possibility to anonymize user timelines collected through the Twitter v1 API. This anonymization can be performed either during data collection or ex-post.
 During anonymization, some entries are dropped, others are anonymized and the rest is kept as is. For details on treatment for each entry, please refer to the `v1_tweet_object`, `v1_user_object` and `v1_entities_object` sheets of this [Google Sheets](https://docs.google.com/spreadsheets/d/11GGVrfr0OrrBFR5qSUE6Tv97l2ahYNj9flNdXabEcis/edit?usp=sharing). 
 
 
@@ -232,7 +232,7 @@ This script gives the possibility to resume an anonymization that may have crash
 ### Anonymization with Twitter API v2
 
 Anonymization in the full-archive search is made possible by the `<ANONYMIZE>` argument, as described in the [relevant part](#v2_full_archive). 
-
+For details on which entry are kept and/or anonymized, please refer to the `v2_full_archive_search` sheet of [this Google Sheets](https://docs.google.com/spreadsheets/d/11GGVrfr0OrrBFR5qSUE6Tv97l2ahYNj9flNdXabEcis/edit?usp=sharing).
 
 <a name="deanonymization"/>
 
