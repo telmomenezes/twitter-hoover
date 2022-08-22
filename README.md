@@ -15,11 +15,21 @@ You can then `cd` into the created directory and use `pip` to install locally:
 
 ## Table of contents
 
-[Use with Twitter v1 API](#twitter_v1)
+* [Use with Twitter v1 API](#twitter_v1)
+  * [Authorize the app (auth)](#v1_auth)
+  * [Read a filtered stream into a local file (stream)](#v1_stream)
+  * [Retrieve tweets from user timelines (timelines)](#v1_timelines)
+  * [Retrieve followers (followers)](#v1_followers)
+  * [Retrieve friends (friends)](#v1_friends)
+  * [Convert to .csv (csv)](#v1_csv)
+  * [Simplify JSON (simplify)](#v1_json)
+  * [Extract YouTube videos (youtube)](#v1_youtube)
 
 <a name="twitter_v1"/>
 
 ## Use with Twitter v1 API
+
+<a name="v1_auth"/>
 
 ### Authorize the app (auth)
 
@@ -29,6 +39,8 @@ To authorize the app, first you need to create the local file `key-and-secret.tx
 
 You will be give a URL to perform authorization. After you authorize the app on this page, you will be given a PIN code, that you should then insert in the command line (there will be a prompt asking you for this). Both OAUTH_TOKEN and OAUTH_TOKEN_SECRET will be written to the local file `auth.txt`. This file will then be available for other commands to transparently perform authentication.
 
+<a name="v1_stream"/>
+
 ### Read a filtered stream into a local file (stream)
 
 `hoover --infile <keywords_file> --outfile <outfile> stream`
@@ -36,6 +48,8 @@ You will be give a URL to perform authorization. After you authorize the app on 
 JSON data will be written to `<outfile>`. The stream will be filtered by the keywords or hashtags found in `<keywords_file>` (one keyword/hashtag per line).
 
 Tweets are saved one per line, in the form of the full JSON object reveived from the Twitter API.
+
+<a name="v1_timelines"/>
 
 ### Retrieve tweets from user timelines (timelines)
 
@@ -52,6 +66,8 @@ In this case, the input file is interpreted as a .csv file. It can have a header
 
 Tweets are saved one per line, in the form of the full JSON object reveived from the Twitter API.
 
+<a name="v1_followers"/>
+
 ### Retrieve followers (followers)
 
 This allows for the retrieval of information on the followers of the specified users. The simplest way to use it is to specify either a screen name or user id:
@@ -67,6 +83,7 @@ In this case, the input file is interpreted as a .csv file. It can have a header
 
 The output file(s) are .csv files, with each line containing information about one user. Its columns are: id, screen_name, name, location, protected, verified, followers_count, friends_count, listed_count, favourites_count, statuses_count, created_at, created_ts.
 
+<a name="v1_friends"/>
 
 ### Retrieve friends (friends)
 
@@ -82,6 +99,8 @@ In this case, the input file is interpreted as a .csv file. It can have a header
 
 
 The output file(s) are .csv files, with each line containing information about one user. Its columns are: id, screen_name, name, location, protected, verified, followers_count, friends_count, listed_count, favourites_count, statuses_count, created_at, created_ts.
+
+<a name="v1_csv"/>
 
 ### Convert to .csv (csv)
 
@@ -119,11 +138,15 @@ Or only one of them, if `--type` is specified.
 
 All the .csv files that directly list tweets (the first 5 types above) have the following columns: 'created_at', 'timestamp', 'id', 'text', 'retweet_count', 'favorite_count' and 'lang'. If the user who created the tweet is not speficied in the file name (this is the case when one input and one output file are directly specified, as in the first example of invocation of the command above), then two extra columns are present: 'user_id' and 'user_screen_name'. Files that contain replies include the columns: 'in_reply_to_status_id', 'in_reply_to_user_id' and 'in_reply_to_screen_name'. Files that contin tweets quoting parent tweets (retweets and quotes) include the column 'quoted_text'. Files  that contain retweets include the fileds: 'retweeted_id', 'retweeted_user_id' and 'retweeted_user_screen_name'. Files that contain quotes include the fileds: 'quoted_id', 'quoted_user_id' and 'quoted_user_screen_name'.
 
+<a name="v1_json"/>
+
 ### Simplify JSON (simplify)
 
 JSON objects produced by the JSON API to represent Tweets can be a bit complex. This converts them to a flatter, simpler JSON schema that might be simpler to user from many purposes:
 
 `hoover --infile <input file with Tweet JSON objects> --outfile <output .json file> simplify`
+
+<a name="v1_youtube"/>
 
 ### Extract YouTube videos (youtube)
 
